@@ -69,9 +69,27 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
-        // Soft delete
-        await db.query('UPDATE users SET deleted_at = NOW() WHERE id = ?', [id]);
-        res.json({ message: 'User deleted successfully' });
+        
+        // Fetch the user to get their current username and email
+        const [users] = await db.query('SELECT username, email FROM users WHERE id = ?', [id]);
+        
+        if (users.length > 0) {
+            const user = users[0];
+            const timestamp = Date.now();
+            
+            // Scramble to free up the unique index for future registrations
+            const scrambledUsername = `deleted_${timestamp}_${user.username}`;
+            const scrambledEmail = `deleted_${timestamp}_${user.email}`;
+            
+            // Soft delete and update email/username strings
+            await db.query(
+                'UPDATE users SET username = ?, email = ?, deleted_at = NOW() WHERE id = ?', 
+                [scrambledUsername, scrambledEmail, id]
+            );
+            res.json({ message: 'User deleted and credentials freed successfully' });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
