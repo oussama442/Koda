@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../services/role.service';
@@ -130,7 +130,7 @@ export class RoleListComponent implements OnInit {
   showDeleteModal = false;
   roleToDelete: any = null;
 
-  constructor(private roleService: RoleService, private cdr: ChangeDetectorRef) {}
+  constructor(private roleService: RoleService) {}
 
   ngOnInit(): void {
     console.log('RoleListComponent initialized');
@@ -143,7 +143,6 @@ export class RoleListComponent implements OnInit {
       next: (data) => {
         console.log('Roles received in component:', data);
         this.roles = Array.isArray(data) ? data : [];
-        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('API Error while loading roles:', err);
@@ -155,13 +154,11 @@ export class RoleListComponent implements OnInit {
   openDeleteModal(role: any): void {
     this.roleToDelete = role;
     this.showDeleteModal = true;
-    this.cdr.detectChanges();
   }
 
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.roleToDelete = null;
-    this.cdr.detectChanges();
   }
 
   confirmDelete(): void {

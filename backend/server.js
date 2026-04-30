@@ -9,6 +9,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Disable caching for API responses (solves Angular withFetch aggressive caching)
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+});
+
 // MySQL Connection
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -28,6 +37,7 @@ db.connect((err) => {
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/roles', require('./routes/roleRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Koda API is running and connected to DB!');

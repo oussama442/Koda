@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const db = mysql.createPool({
@@ -34,9 +35,16 @@ exports.getUser = async (req, res) => {
 exports.createUser = async (req, res) => {
     try {
         const { full_name, username, email, password, is_global_admin } = req.body;
+        
+        if (!password) {
+            return res.status(400).json({ message: 'Password is required' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const [result] = await db.query(
             'INSERT INTO users (full_name, username, email, password, is_global_admin) VALUES (?, ?, ?, ?, ?)',
-            [full_name, username, email, password, is_global_admin || false]
+            [full_name, username, email, hashedPassword, is_global_admin ? 1 : 0]
         );
         res.status(201).json({ id: result.insertId, full_name, username, email });
     } catch (error) {
