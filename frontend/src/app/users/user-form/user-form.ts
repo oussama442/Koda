@@ -33,19 +33,19 @@ import { UserService } from '../../services/user.service';
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-2">Full Name <span class="text-red-500">*</span></label>
-              <input formControlName="full_name" type="text" class="koda-input" placeholder="John Doe">
+              <input formControlName="full_name" type="text" class="koda-input" placeholder="Enter full name">
               <span class="text-xs text-red-500 mt-1" *ngIf="userForm.get('full_name')?.invalid && userForm.get('full_name')?.touched">Full name is required.</span>
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-2">Username <span class="text-red-500">*</span></label>
-              <input formControlName="username" type="text" class="koda-input" placeholder="johndoe">
+              <input formControlName="username" type="text" class="koda-input" placeholder="Choose a username">
               <span class="text-xs text-red-500 mt-1" *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched">Username is required.</span>
             </div>
           </div>
 
           <div class="px-6 pb-6">
             <label class="block text-sm font-bold text-gray-700 mb-2">Email Address <span class="text-red-500">*</span></label>
-            <input formControlName="email" type="email" class="koda-input" placeholder="john@example.com">
+            <input formControlName="email" type="email" class="koda-input" placeholder="contact@company.com">
             <span class="text-xs text-red-500 mt-1" *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">Valid email is required.</span>
           </div>
 

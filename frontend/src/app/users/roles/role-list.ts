@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { RoleService } from '../../services/role.service';
@@ -50,7 +50,7 @@ import { RoleService } from '../../services/role.service';
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr *ngFor="let role of roles" class="hover:bg-gray-50/50 transition-colors">
+            <tr *ngFor="let role of roles()" class="hover:bg-gray-50/50 transition-colors">
               <td class="px-6 py-4">
                 <span class="font-bold text-gray-700">{{ role.role_name }}</span>
               </td>
@@ -75,7 +75,7 @@ import { RoleService } from '../../services/role.service';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="roles.length === 0">
+            <tr *ngIf="roles().length === 0">
               <td colspan="2" class="px-6 py-12 text-center text-gray-400 italic">
                 Aucun rôle trouvé.
               </td>
@@ -84,7 +84,7 @@ import { RoleService } from '../../services/role.service';
         </table>
         
         <div class="p-6 bg-gray-50/50 flex justify-between items-center text-xs text-gray-500">
-          <p>Affiche 1 à {{ roles.length }} sur {{ roles.length }} entrées</p>
+          <p>Affiche 1 à {{ roles().length }} sur {{ roles().length }} entrées</p>
           <div class="flex gap-1">
             <button class="px-3 py-1 border border-gray-200 rounded bg-white hover:bg-gray-50">Précédent</button>
             <button class="px-3 py-1 bg-[var(--color-primary)] text-white rounded">1</button>
@@ -113,11 +113,11 @@ import { RoleService } from '../../services/role.service';
             Cette action est irréversible.
           </p>
         </div>
-        <div class="flex border-t border-gray-100">
-          <button (click)="closeDeleteModal()" class="flex-1 px-6 py-4 text-sm font-bold text-gray-500 hover:bg-gray-50 transition-colors">
+        <div class="flex items-center justify-end gap-3 p-6 bg-gray-50/80 border-t border-gray-100">
+          <button (click)="closeDeleteModal()" class="px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-all shadow-sm">
             Annuler
           </button>
-          <button (click)="confirmDelete()" class="flex-1 px-6 py-4 text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-colors">
+          <button (click)="confirmDelete()" class="px-5 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all shadow-sm shadow-red-200">
             Supprimer
           </button>
         </div>
@@ -126,7 +126,7 @@ import { RoleService } from '../../services/role.service';
   `
 })
 export class RoleListComponent implements OnInit {
-  roles: any[] = [];
+  roles = signal<any[]>([]);
   showDeleteModal = false;
   roleToDelete: any = null;
 
@@ -142,7 +142,7 @@ export class RoleListComponent implements OnInit {
     this.roleService.getRoles().subscribe({
       next: (data) => {
         console.log('Roles received in component:', data);
-        this.roles = Array.isArray(data) ? data : [];
+        this.roles.set(Array.isArray(data) ? data : []);
       },
       error: (err) => {
         console.error('API Error while loading roles:', err);

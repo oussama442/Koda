@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UserService } from '../../services/user.service';
@@ -45,7 +45,7 @@ import { UserService } from '../../services/user.service';
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr *ngFor="let user of users" class="hover:bg-gray-50/50 transition-colors">
+            <tr *ngFor="let user of users()" class="hover:bg-gray-50/50 transition-colors">
               <td class="px-6 py-4">
                 <span class="font-bold text-gray-700">{{ user.full_name }}</span>
               </td>
@@ -64,7 +64,7 @@ import { UserService } from '../../services/user.service';
                     </svg>
                     Edit
                   </a>
-                  <button (click)="deleteUser(user.id)" class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors cursor-pointer">
+                  <button (click)="openDeleteModal(user)" class="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
@@ -73,7 +73,7 @@ import { UserService } from '../../services/user.service';
                 </div>
               </td>
             </tr>
-            <tr *ngIf="users.length === 0">
+            <tr *ngIf="users().length === 0">
               <td colspan="5" class="px-6 py-12 text-center text-gray-400 italic">
                 No users found.
               </td>
@@ -82,10 +82,39 @@ import { UserService } from '../../services/user.service';
         </table>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div *ngIf="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" (click)="closeDeleteModal()"></div>
+      <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+        <div class="p-8 text-center">
+          <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-6 shadow-inner">
+            <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-black text-gray-900 mb-2">Delete User</h3>
+          <p class="text-sm text-gray-500">
+            Are you sure you want to delete <span class="font-bold text-gray-900">"{{ userToDelete?.full_name }}"</span>? 
+            This action cannot be undone.
+          </p>
+        </div>
+        <div class="flex items-center justify-end gap-3 p-6 bg-gray-50/80 border-t border-gray-100">
+          <button (click)="closeDeleteModal()" class="px-5 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-all shadow-sm">
+            Cancel
+          </button>
+          <button (click)="confirmDelete()" class="px-5 py-2.5 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all shadow-sm shadow-red-200">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
   `
 })
 export class UserListComponent implements OnInit {
-  users: any[] = [];
+  users = signal<any[]>([]);
+  showDeleteModal = false;
+  userToDelete: any = null;
 
   constructor(private userService: UserService) {}
 
@@ -96,20 +125,34 @@ export class UserListComponent implements OnInit {
   loadUsers() {
     this.userService.getUsers().subscribe({
       next: (data) => {
-        this.users = data;
+        this.users.set(data);
       },
       error: (err) => alert('Failed to load users. ' + (err.error?.message || err.message))
     });
   }
 
-  deleteUser(id: number) {
-    if (confirm('Are you sure you want to delete this user?')) {
-      this.userService.deleteUser(id).subscribe({
-        next: () => {
-          this.loadUsers();
-        },
-        error: (err) => alert('Failed to delete user. ' + (err.error?.message || err.message))
-      });
-    }
+  openDeleteModal(user: any) {
+    this.userToDelete = user;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.userToDelete = null;
+  }
+
+  confirmDelete() {
+    if (!this.userToDelete) return;
+    
+    this.userService.deleteUser(this.userToDelete.id).subscribe({
+      next: () => {
+        this.closeDeleteModal();
+        this.loadUsers();
+      },
+      error: (err) => {
+        alert('Failed to delete user. ' + (err.error?.message || err.message));
+        this.closeDeleteModal();
+      }
+    });
   }
 }
