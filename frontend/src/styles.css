@@ -1,3 +1,47 @@
-/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
 
-@import 'tailwindcss';
+@theme {
+  --color-primary: #d97706; /* Filament Orange */
+  --color-primary-hover: #b45309;
+  --color-background: #f9fafb; /* Filament Light Gray */
+  --color-surface: #ffffff;
+  --color-text-main: #111827;
+  --color-text-muted: #6b7280;
+  
+  --shadow-filament: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-filament-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--color-background)] text-[var(--color-text-main)] font-sans antialiased;
+    margin: 0;
+  }
+}
+
+@layer components {
+  .koda-card {
+    @apply bg-[var(--color-surface)] rounded-xl shadow-[var(--shadow-filament)] border border-gray-200;
+  }
+
+  .koda-input {
+    @apply w-full px-3 py-2 bg-white border border-gray-300 rounded-lg outline-hidden transition-all duration-200;
+    @apply focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] text-sm;
+  }
+
+  .koda-btn-primary {
+    @apply px-4 py-2 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-lg transition-all duration-200;
+    @apply hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-hover)] disabled:opacity-50;
+    @apply flex items-center justify-center gap-2;
+  }
+
+  .sidebar-link {
+    @apply flex flex-row items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 text-gray-500 font-semibold;
+  }
+  .sidebar-link:hover {
+    @apply bg-gray-50 text-gray-900;
+  }
+  .sidebar-link.active {
+    @apply bg-orange-50 text-[var(--color-primary)];
+  }
+}

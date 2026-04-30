@@ -1,0 +1,65 @@
+<div class="min-h-screen flex items-center justify-center p-6 bg-[var(--color-background)]">
+  <div class="w-full max-w-md">
+    
+    <!-- Login Card -->
+    <div class="koda-card p-8 bg-white">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-lg font-bold mb-1 tracking-tight">Koda</h1>
+        <h2 class="text-2xl font-black">Sign in</h2>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Username or Email <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="text" 
+            formControlName="login" 
+            class="koda-input" 
+            placeholder=""
+          >
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Password <span class="text-red-500">*</span>
+          </label>
+          <input 
+            type="password" 
+            formControlName="password" 
+            class="koda-input" 
+            placeholder=""
+          >
+        </div>
+
+        <!-- Remember Me (Visual only for now) -->
+        <div class="flex items-center">
+            <input type="checkbox" id="remember" class="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]">
+            <label for="remember" class="ml-2 block text-sm text-gray-700">Remember me</label>
+        </div>
+
+        <div *ngIf="error" class="bg-red-50 text-red-600 p-3 rounded-lg text-xs font-semibold border border-red-100">
+          {{ error }}
+        </div>
+
+        <button 
+          type="submit" 
+          [disabled]="loading || loginForm.invalid" 
+          class="koda-btn-primary w-full h-11"
+        >
+          <span *ngIf="!loading">Sign in</span>
+          <span *ngIf="loading" class="flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Signing in...
+          </span>
+        </button>
+      </form>
+    </div>
+    
+  </div>
+</div>
