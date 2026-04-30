@@ -6,17 +6,21 @@
     class="bg-white border border-gray-200 rounded-3xl shadow-sm flex flex-col transition-all duration-300 overflow-hidden"
   >
     <!-- Logo -->
-    <div class="p-8">
-      <h1 class="text-3xl font-black tracking-tighter whitespace-nowrap">KODA<span class="text-[#d97706]">.</span></h1>
+    <div class="p-8 flex justify-center" [class.px-0]="!isSidebarOpen">
+      <h1 class="text-3xl font-black tracking-tighter whitespace-nowrap">
+        {{ isSidebarOpen ? 'KODA' : 'K' }}<span class="text-[#3B82F6]">.</span>
+      </h1>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+    <nav class="flex-1 px-3 space-y-2 overflow-y-auto">
       <a 
         *ngFor="let item of menuItems" 
         [routerLink]="item.route" 
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
         class="sidebar-link group"
+        [class.justify-center]="!isSidebarOpen"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 opacity-70 group-[.active]:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
@@ -25,17 +29,21 @@
       </a>
     </nav>
 
-    <!-- User Section -->
-    <div class="p-3 border-t border-gray-100">
-      <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
-        <div class="w-10 h-10 rounded-xl bg-gray-200 flex items-center justify-center font-bold text-gray-500 shrink-0">
-          {{ user?.username?.charAt(0).toUpperCase() }}
+    <!-- User Profile -->
+    <div class="p-4 border-t border-gray-100" [class.px-2]="!isSidebarOpen">
+      <div 
+        class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors"
+        [class.justify-center]="!isSidebarOpen"
+        [class.px-0]="!isSidebarOpen"
+      >
+        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[var(--color-primary)] font-bold shrink-0">
+          {{ user?.full_name?.charAt(0) }}
         </div>
         <div *ngIf="isSidebarOpen" class="flex-1 min-w-0">
-          <p class="text-sm font-bold truncate">{{ user?.full_name }}</p>
-          <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{{ user?.is_global_admin ? 'Admin' : 'Developer' }}</p>
+          <p class="text-sm font-bold text-gray-900 truncate">{{ user?.full_name }}</p>
+          <p class="text-xs text-gray-500 truncate">Administrator</p>
         </div>
-        <button (click)="logout()" *ngIf="isSidebarOpen" class="text-gray-400 hover:text-red-500 transition-colors">
+        <button *ngIf="isSidebarOpen" (click)="logout()" class="p-2 text-gray-400 hover:text-red-500 transition-colors shrink-0">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>

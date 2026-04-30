@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #d97706; /* Filament Orange */
-  --color-primary-hover: #b45309;
-  --color-background: #f9fafb; /* Filament Light Gray */
+  --color-primary: #3B82F6; /* Classic Modern Blue */
+  --color-primary-hover: #2563eb;
+  --color-background: #f9fafb;
   --color-surface: #ffffff;
   --color-text-main: #111827;
   --color-text-muted: #6b7280;
@@ -42,6 +42,6 @@
     @apply bg-gray-50 text-gray-900;
   }
   .sidebar-link.active {
-    @apply bg-orange-50 text-[var(--color-primary)];
+    @apply bg-[#eff6ff] text-[var(--color-primary)];
   }
 }

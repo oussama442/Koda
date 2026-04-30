@@ -27,6 +27,7 @@ db.connect((err) => {
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/roles', require('./routes/roleRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Koda API is running and connected to DB!');
