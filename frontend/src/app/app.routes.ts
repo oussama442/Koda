@@ -40,6 +40,22 @@ export const routes: Routes = [
         loadComponent: () => import('./users/user-form/user-form').then(m => m.UserFormComponent),
         canActivate: [adminGuard]
       },
+      { path: 'applications', loadComponent: () => import('./applications/application-list/application-list').then(m => m.ApplicationListComponent) },
+      { path: 'applications/new', loadComponent: () => import('./applications/application-form/application-form').then(m => m.ApplicationFormComponent) },
+      { path: 'applications/edit/:id', loadComponent: () => import('./applications/application-form/application-form').then(m => m.ApplicationFormComponent) },
+
+      { path: 'projects', loadComponent: () => import('./projects/project-list/project-list').then(m => m.ProjectListComponent) },
+      { path: 'projects/new', loadComponent: () => import('./projects/project-form/project-form').then(m => m.ProjectFormComponent) },
+      { path: 'projects/edit/:id', loadComponent: () => import('./projects/project-form/project-form').then(m => m.ProjectFormComponent) },
+
+      { path: 'incidents', loadComponent: () => import('./incidents/incident-list/incident-list').then(m => m.IncidentListComponent) },
+      { path: 'incidents/new', loadComponent: () => import('./incidents/incident-form/incident-form').then(m => m.IncidentFormComponent) },
+      { path: 'incidents/edit/:id', loadComponent: () => import('./incidents/incident-form/incident-form').then(m => m.IncidentFormComponent) },
+
+      { path: 'deployments', loadComponent: () => import('./deployments/deployment-list/deployment-list').then(m => m.DeploymentListComponent) },
+      { path: 'deployments/new', loadComponent: () => import('./deployments/deployment-form/deployment-form').then(m => m.DeploymentFormComponent) },
+      { path: 'deployments/edit/:id', loadComponent: () => import('./deployments/deployment-form/deployment-form').then(m => m.DeploymentFormComponent) },
+
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

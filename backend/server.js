@@ -38,6 +38,11 @@ db.connect((err) => {
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/roles', require('./routes/roleRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/applications', require('./routes/applicationRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/incidents', require('./routes/incidentRoutes'));
+app.use('/api/deployments', require('./routes/deploymentRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Koda API is running and connected to DB!');
