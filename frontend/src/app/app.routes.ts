@@ -55,6 +55,7 @@ export const routes: Routes = [
       { path: 'deployments', loadComponent: () => import('./deployments/deployment-list/deployment-list').then(m => m.DeploymentListComponent) },
       { path: 'deployments/new', loadComponent: () => import('./deployments/deployment-form/deployment-form').then(m => m.DeploymentFormComponent) },
       { path: 'deployments/edit/:id', loadComponent: () => import('./deployments/deployment-form/deployment-form').then(m => m.DeploymentFormComponent) },
+      { path: 'tasks/board', loadComponent: () => import('./tasks/task-board/task-board').then(m => m.TaskBoardComponent) },
 
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
