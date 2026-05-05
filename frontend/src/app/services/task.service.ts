@@ -10,17 +10,16 @@ export class TaskService {
 
   constructor(private http: HttpClient) { }
 
-  getTasks(projectId?: number, sprintId?: number): Observable<any[]> {
-    let url = this.apiUrl;
-    const params = [];
-    if (projectId) params.push(`project_id=${projectId}`);
-    if (sprintId) params.push(`sprint_id=${sprintId}`);
+  getTasks(projectId?: number, sprintId?: any): Observable<any[]> {
+    let params: any = {};
+    if (projectId) params.project_id = projectId;
     
-    if (params.length > 0) {
-      url += '?' + params.join('&');
+    // Only add sprint_id if it's a valid number (not null, not "null", not undefined)
+    if (sprintId && sprintId !== 'null' && sprintId !== 'undefined') {
+      params.sprint_id = sprintId;
     }
     
-    return this.http.get<any[]>(url);
+    return this.http.get<any[]>(this.apiUrl, { params });
   }
 
   getTask(id: number): Observable<any> {

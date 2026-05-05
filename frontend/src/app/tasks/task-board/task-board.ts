@@ -342,7 +342,7 @@ export class TaskBoardComponent implements OnInit {
       this.tasks.set([]);
       return;
     }
-    this.taskService.getTasks(this.selectedProjectId, this.selectedSprintId || undefined).subscribe(data => {
+    this.taskService.getTasks(this.selectedProjectId, this.selectedSprintId).subscribe(data => {
       this.tasks.set(data);
     });
   }

@@ -45,6 +45,7 @@ app.use('/api/incidents', require('./routes/incidentRoutes'));
 app.use('/api/deployments', require('./routes/deploymentRoutes'));
 app.use('/api/sprints', require('./routes/sprintRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/api/project-members', require('./routes/projectMemberRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Koda API is running and connected to DB!');

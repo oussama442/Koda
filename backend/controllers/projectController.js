@@ -1,19 +1,15 @@
-const mysql = require('mysql2/promise');
-require('dotenv').config();
-
-const db = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+const db = require('../config/db');
 
 exports.getAll = async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM projects WHERE deleted_at IS NULL ORDER BY id DESC');
+        const [rows] = await db.query(`
+            SELECT p.*, a.name as application_name, u.full_name as chef_projet_name 
+            FROM projects p
+            LEFT JOIN applications a ON p.application_id = a.id
+            LEFT JOIN users u ON p.chef_projet_id = u.id
+            WHERE p.deleted_at IS NULL 
+            ORDER BY p.id DESC
+        `);
         res.json(rows);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -23,7 +19,12 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
     try {
         const { id } = req.params;
-        const [rows] = await db.query('SELECT * FROM projects WHERE id = ? AND deleted_at IS NULL', [id]);
+        const [rows] = await db.query(`
+            SELECT p.*, u.full_name as chef_projet_name 
+            FROM projects p 
+            LEFT JOIN users u ON p.chef_projet_id = u.id
+            WHERE p.id = ? AND p.deleted_at IS NULL
+        `, [id]);
         if (rows.length === 0) return res.status(404).json({ message: 'Not found' });
         res.json(rows[0]);
     } catch (error) {
@@ -33,10 +34,15 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
     try {
-        const { application_id, name, description, start_date, end_date } = req.body;
+        // Only Admin can create projects
+        if (req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Only Admin can create projects' });
+        }
+
+        const { application_id, name, description, start_date, end_date, chef_projet_id } = req.body;
         const [result] = await db.query(
-            'INSERT INTO projects (application_id, name, description, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-            [req.body.application_id, req.body.name, req.body.description, req.body.start_date, req.body.end_date]
+            'INSERT INTO projects (application_id, name, description, start_date, end_date, chef_projet_id) VALUES (?, ?, ?, ?, ?, ?)',
+            [application_id, name, description, start_date, end_date, chef_projet_id || null]
         );
         res.status(201).json({ id: result.insertId, message: 'Created successfully' });
     } catch (error) {
@@ -47,10 +53,16 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
     try {
         const { id } = req.params;
-        const { application_id, name, description, start_date, end_date } = req.body;
+        const { application_id, name, description, start_date, end_date, chef_projet_id } = req.body;
+        
+        // Only Admin can update project owner/core details
+        if (req.user.role !== 'Admin') {
+            return res.status(403).json({ message: 'Only Admin can modify project core details' });
+        }
+
         await db.query(
-            'UPDATE projects SET application_id = ?, name = ?, description = ?, start_date = ?, end_date = ? WHERE id = ?',
-            [req.body.application_id, req.body.name, req.body.description, req.body.start_date, req.body.end_date, id]
+            'UPDATE projects SET application_id = ?, name = ?, description = ?, start_date = ?, end_date = ?, chef_projet_id = ? WHERE id = ?',
+            [application_id, name, description, start_date, end_date, chef_projet_id || null, id]
         );
         res.json({ message: 'Updated successfully' });
     } catch (error) {
@@ -61,6 +73,8 @@ exports.update = async (req, res) => {
 exports.remove = async (req, res) => {
     try {
         const { id } = req.params;
+        if (req.user.role !== 'Admin') return res.status(403).json({ message: 'Forbidden' });
+        
         await db.query('UPDATE projects SET deleted_at = NOW() WHERE id = ?', [id]);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {

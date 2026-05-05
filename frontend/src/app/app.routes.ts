@@ -47,6 +47,7 @@ export const routes: Routes = [
       { path: 'projects', loadComponent: () => import('./projects/project-list/project-list').then(m => m.ProjectListComponent) },
       { path: 'projects/new', loadComponent: () => import('./projects/project-form/project-form').then(m => m.ProjectFormComponent) },
       { path: 'projects/edit/:id', loadComponent: () => import('./projects/project-form/project-form').then(m => m.ProjectFormComponent) },
+      { path: 'projects/:id/members', loadComponent: () => import('./projects/project-members/project-members').then(m => m.ProjectMembersComponent) },
 
       { path: 'incidents', loadComponent: () => import('./incidents/incident-list/incident-list').then(m => m.IncidentListComponent) },
       { path: 'incidents/new', loadComponent: () => import('./incidents/incident-form/incident-form').then(m => m.IncidentFormComponent) },
