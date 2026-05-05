@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { createNotification } = require('./notificationController');
 
 exports.getAll = async (req, res) => {
     try {
@@ -57,6 +58,17 @@ exports.create = async (req, res) => {
             'INSERT INTO tasks (project_id, sprint_id, user_id, title, description, status, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [project_id, sprint_id || null, user_id || null, title, description, status || 'To Do', start_date || null, end_date || null]
         );
+
+        if (user_id) {
+            await createNotification(
+                user_id,
+                'Nouvelle Tâche',
+                `On vous a assigné une nouvelle tâche: ${title}`,
+                'Task',
+                `/tasks/board?project_id=${project_id}`
+            );
+        }
+
         res.status(201).json({ id: result.insertId, message: 'Task created successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -69,11 +81,12 @@ exports.update = async (req, res) => {
         const { sprint_id, user_id, title, description, story_points, status, start_date, end_date, comment } = req.body;
         
         // Get current status to check for changes
-        const [current] = await db.query('SELECT status FROM tasks WHERE id = ?', [id]);
+        const [current] = await db.query('SELECT status, project_id, title FROM tasks WHERE id = ?', [id]);
+        if (!current.length) return res.status(404).json({ message: 'Task not found' });
         
         await db.query(
             'UPDATE tasks SET sprint_id = ?, user_id = ?, title = ?, description = ?, status = ?, start_date = ?, end_date = ? WHERE id = ?',
-            [sprint_id || null, user_id || null, title, description, status, start_date || null, end_date || null, id]
+            [sprint_id || null, user_id || null, title || current[0].title, description || null, status, start_date || null, end_date || null, id]
         );
 
         // If status changed and a comment was provided, save it
@@ -81,6 +94,17 @@ exports.update = async (req, res) => {
             await db.query(
                 'INSERT INTO task_comments (task_id, user_id, comment) VALUES (?, ?, ?)',
                 [id, req.user ? req.user.id : null, comment]
+            );
+        }
+
+        // Notify if status changed
+        if (current[0].status !== status && user_id) {
+            await createNotification(
+                user_id,
+                'Statut Mis à Jour',
+                `La tâche "${title || current[0].title}" est passée à: ${status}`,
+                'Task',
+                `/tasks/board?project_id=${current[0].project_id}`
             );
         }
 

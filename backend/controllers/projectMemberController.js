@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { createNotification } = require('./notificationController');
 
 exports.addMember = async (req, res) => {
     try {
@@ -18,6 +19,16 @@ exports.addMember = async (req, res) => {
         await db.query(
             'INSERT INTO project_members (project_id, user_id, role_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE role_id = ?',
             [project_id, user_id, role_id, role_id]
+        );
+
+        // Notify the user
+        const [projInfo] = await db.query('SELECT name FROM projects WHERE id = ?', [project_id]);
+        await createNotification(
+            user_id,
+            'Nouveau Projet',
+            `Vous avez été ajouté à l'équipe du projet: ${projInfo[0].name}`,
+            'Project',
+            `/projects/${project_id}/members`
         );
         
         res.status(201).json({ message: 'Member added successfully' });

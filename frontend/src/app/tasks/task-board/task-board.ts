@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
 import { SprintService } from '../../services/sprint.service';
@@ -180,8 +181,7 @@ import { UserService } from '../../services/user.service';
           </button>
           <button 
             (click)="updateTaskStatus()" 
-            [disabled]="!statusComment || statusComment.length < 5"
-            class="flex-[2] py-5 text-sm font-black text-white bg-blue-600 rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all disabled:opacity-30"
+            class="flex-[2] py-5 text-sm font-black text-white bg-blue-600 rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all"
           >
             METTRE À JOUR
           </button>
@@ -307,12 +307,21 @@ export class TaskBoardComponent implements OnInit {
     private projectService: ProjectService,
     private sprintService: SprintService,
     private userService: UserService,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     this.loadProjects();
     this.loadUsers();
+    
+    // Check for project_id in query params (from Project Card "Board" button)
+    this.route.queryParams.subscribe(params => {
+      if (params['project_id']) {
+        this.selectedProjectId = +params['project_id'];
+        this.onProjectChange();
+      }
+    });
   }
 
   loadProjects() {

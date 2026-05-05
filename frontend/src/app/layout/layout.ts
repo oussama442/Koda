@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-layout',
@@ -9,9 +10,12 @@ import { AuthService } from '../services/auth.service';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './layout.html'
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit {
   user: any;
   isSidebarOpen = true;
+  showNotifDropdown = false;
+  notifications: any[] = [];
+  unreadCount = 0;
 
   menuItems = [
     { label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', route: '/dashboard', exact: true },
@@ -24,8 +28,47 @@ export class LayoutComponent {
     { label: 'Tâches', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', route: '/tasks/board', exact: true },
   ];
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(
+    private authService: AuthService, 
+    private router: Router,
+    private notifService: NotificationService
+  ) {}
+
+  ngOnInit() {
     this.authService.currentUser$.subscribe(user => this.user = user);
+    this.notifService.unreadCount$.subscribe(count => this.unreadCount = count);
+    this.loadNotifications();
+  }
+
+  loadNotifications() {
+    this.notifService.getNotifications().subscribe(data => {
+      this.notifications = data;
+      this.notifService.updateUnreadCount(data);
+    });
+  }
+
+  toggleNotifDropdown(event: Event) {
+    event.stopPropagation();
+    this.showNotifDropdown = !this.showNotifDropdown;
+    if (this.showNotifDropdown) this.loadNotifications();
+  }
+
+  @HostListener('document:click')
+  closeNotif() { this.showNotifDropdown = false; }
+
+  markAsRead(n: any) {
+    if (n.is_read) {
+        if (n.link) this.router.navigateByUrl(n.link);
+        return;
+    }
+    this.notifService.markAsRead(n.id).subscribe(() => {
+      this.loadNotifications();
+      if (n.link) this.router.navigateByUrl(n.link);
+    });
+  }
+
+  markAllRead() {
+    this.notifService.markAllAsRead().subscribe(() => this.loadNotifications());
   }
 
   logout() {

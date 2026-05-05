@@ -56,12 +56,15 @@ import { AuthService } from '../../services/auth.service';
             </div>
           </div>
 
-          <div class="flex gap-3">
-            <a [routerLink]="['/projects', item.id, 'members']" class="flex-1 px-4 py-3 bg-gray-900 text-white text-center font-black text-[10px] uppercase rounded-xl hover:bg-black transition-all">
+          <div class="flex flex-wrap gap-2">
+            <a [routerLink]="['/projects', item.id, 'members']" class="flex-1 min-w-[80px] px-2 py-3 bg-gray-900 text-white text-center font-black text-[9px] uppercase rounded-xl hover:bg-black transition-all">
               Équipe
             </a>
-            <a [routerLink]="['/tasks/board']" [queryParams]="{project_id: item.id}" class="flex-1 px-4 py-3 bg-white text-gray-900 text-center font-black text-[10px] uppercase border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
+            <a [routerLink]="['/tasks/board']" [queryParams]="{project_id: item.id}" class="flex-1 min-w-[80px] px-2 py-3 bg-white text-gray-900 text-center font-black text-[9px] uppercase border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
               Board
+            </a>
+            <a [routerLink]="['/projects', item.id, 'documents']" class="flex-1 min-w-[80px] px-2 py-3 bg-orange-50 text-orange-600 text-center font-black text-[9px] uppercase rounded-xl hover:bg-orange-100 transition-all">
+              Docs
             </a>
           </div>
         </div>
@@ -105,7 +108,9 @@ export class ProjectListComponent implements OnInit {
     this.service.getAll().subscribe({ next: data => this.items.set(data) });
   }
 
-  isAdmin() { return this.user?.role === 'Admin'; }
+  isAdmin() { 
+    return this.user?.is_global_admin || this.user?.role === 'Admin'; 
+  }
 
   openDelete(item: any) { this.itemToDelete = item; this.showDeleteModal = true; }
   closeDelete() { this.showDeleteModal = false; this.itemToDelete = null; }

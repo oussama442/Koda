@@ -46,6 +46,11 @@ app.use('/api/deployments', require('./routes/deploymentRoutes'));
 app.use('/api/sprints', require('./routes/sprintRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/project-members', require('./routes/projectMemberRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/documents', require('./routes/documentRoutes'));
+
+// Serve uploads statically
+app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
     res.send('Koda API is running and connected to DB!');
