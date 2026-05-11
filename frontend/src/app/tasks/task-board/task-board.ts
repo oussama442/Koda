@@ -67,10 +67,10 @@ import { UserService } from '../../services/user.service';
       </div>
 
       <!-- Kanban Board -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <!-- Columns Logic (To Do, In Progress, Done) -->
         <ng-container *ngFor="let col of columns">
-          <div [class]="col.bgClass + ' rounded-[2.5rem] p-6 border flex flex-col min-h-[650px] transition-all'" [class.border-gray-200]="col.id === 'To Do'" [class.border-blue-100]="col.id === 'In Progress'" [class.border-green-100]="col.id === 'Done'">
+          <div [class]="col.bgClass + ' rounded-[2.5rem] p-6 border flex flex-col min-h-[650px] transition-all'" [class.border-gray-200]="col.id === 'To Do'" [class.border-blue-100]="col.id === 'In Progress'" [class.border-purple-100]="col.id === 'Review'" [class.border-green-100]="col.id === 'Done'">
             <div class="flex items-center justify-between mb-8 px-2">
               <h3 [class]="col.textClass + ' text-base font-black uppercase tracking-widest flex items-center gap-3'">
                 <span [class]="col.dotClass + ' w-2.5 h-2.5 rounded-full shadow-sm'"></span>
@@ -150,14 +150,14 @@ import { UserService } from '../../services/user.service';
               <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">État Actuel</label>
                 <div class="flex p-1 bg-gray-100 rounded-2xl gap-1">
-                  <button *ngFor="let s of ['To Do', 'In Progress', 'Done']" 
+                  <button *ngFor="let s of ['To Do', 'In Progress', 'Review', 'Done']" 
                     (click)="tempStatus = s"
                     [class.bg-white]="tempStatus === s"
                     [class.shadow-md]="tempStatus === s"
                     [class.text-blue-600]="tempStatus === s"
                     class="flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all text-gray-500 hover:text-gray-900"
                   >
-                    {{ s === 'To Do' ? 'À Faire' : s === 'In Progress' ? 'En Cours' : 'Fini' }}
+                    {{ s === 'To Do' ? 'À Faire' : s === 'In Progress' ? 'En Cours' : s === 'Review' ? 'En Revue' : 'Fini' }}
                   </button>
                 </div>
               </div>
@@ -283,6 +283,7 @@ export class TaskBoardComponent implements OnInit {
   columns = [
     { id: 'To Do', label: 'À Faire', bgClass: 'bg-gray-50/50', textClass: 'text-gray-900', dotClass: 'bg-gray-400' },
     { id: 'In Progress', label: 'En Cours', bgClass: 'bg-blue-50/30', textClass: 'text-blue-900', dotClass: 'bg-blue-500' },
+    { id: 'Review', label: 'En Revue', bgClass: 'bg-purple-50/30', textClass: 'text-purple-900', dotClass: 'bg-purple-500' },
     { id: 'Done', label: 'Terminé', bgClass: 'bg-green-50/30', textClass: 'text-green-900', dotClass: 'bg-green-500' }
   ];
 

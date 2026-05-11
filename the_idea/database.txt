@@ -34,7 +34,7 @@ CREATE TABLE applications (
     name VARCHAR(150) NOT NULL,
     description TEXT,
     current_status VARCHAR(50) NOT NULL, -- e.g., Study, Development, Production
-    github_repo_url VARCHAR(255),
+    gitlab_repo_url VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL
@@ -224,3 +224,18 @@ CREATE TABLE task_comments (
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =========================================================================
+-- 6. SEED DATA
+-- =========================================================================
+
+INSERT INTO roles (role_name) VALUES ('Admin'), ('Project Manager'), ('Developer'), ('Quality Assurance');
+
+INSERT INTO permissions (permission_name, description) VALUES 
+('manage_users', 'Ability to create, update, and delete users'),
+('manage_projects', 'Ability to create, update, and delete projects'),
+('manage_tasks', 'Ability to create, update, and delete tasks');
+
+-- Note: Password is 'admin123' hashed with bcrypt (standard practice)
+INSERT INTO users (full_name, username, email, password, is_global_admin) 
+VALUES ('System Admin', 'admin', 'admin@koda.com', '$2a$10$XOP957B88.6J.6A6A6A6A6A6A6A6A6A6A6A6A6A6A6A6A6A', TRUE);

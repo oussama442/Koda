@@ -6,7 +6,11 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class SprintService {
+<<<<<<< HEAD
   private apiUrl = 'http://localhost:5000/api/sprints';
+=======
+  private apiUrl = '/api/sprints';
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
   constructor(private http: HttpClient) { }
 

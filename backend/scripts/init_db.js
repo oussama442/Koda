@@ -5,7 +5,11 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 async function initDB() {
     const connection = await mysql.createConnection({
+<<<<<<< HEAD
         host: '127.0.0.1',
+=======
+        host: process.env.DB_HOST || 'localhost',
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
         port: 3306,
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || '',

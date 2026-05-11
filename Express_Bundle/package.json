@@ -1,0 +1,13 @@
+﻿{
+    "main":  "app.js",
+    "name":  "koda",
+    "version":  "1.0.0",
+    "dependencies":  {
+                         "mysql2":  "^3.2.0",
+                         "cors":  "^2.8.6",
+                         "dotenv":  "^17.4.2",
+                         "bcryptjs":  "^3.0.3",
+                         "jsonwebtoken":  "^9.0.3",
+                         "express":  "^4.18.2"
+                     }
+}

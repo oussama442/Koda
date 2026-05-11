@@ -6,7 +6,11 @@ import { Observable, BehaviorSubject, timer, switchMap } from 'rxjs';
   providedIn: 'root'
 })
 export class NotificationService {
+<<<<<<< HEAD
   private apiUrl = 'http://localhost:5000/api/notifications';
+=======
+  private apiUrl = '/api/notifications';
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
   private unreadCountSubject = new BehaviorSubject<number>(0);
   public unreadCount$ = this.unreadCountSubject.asObservable();
 

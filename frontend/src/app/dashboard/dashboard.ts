@@ -1,6 +1,10 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardService } from '../services/dashboard.service';
+<<<<<<< HEAD
+=======
+import { ReportService } from '../services/report.service';
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
 @Component({
   selector: 'app-dashboard',
@@ -14,8 +18,24 @@ import { DashboardService } from '../services/dashboard.service';
           <h2 class="text-4xl font-black text-gray-900 tracking-tight uppercase">Cockpit Global</h2>
           <p class="text-sm font-medium text-gray-400 mt-1 uppercase tracking-widest">Vue d'ensemble de l'infrastructure Koda</p>
         </div>
+<<<<<<< HEAD
         <div class="px-4 py-2 bg-blue-50 border border-blue-100 rounded-2xl">
           <span class="text-[10px] font-black text-blue-600 uppercase tracking-tighter">Dernière mise à jour: Aujourd'hui</span>
+=======
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <button (click)="syncGit()" class="px-4 py-2 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 shadow-lg shadow-slate-200 transition-all flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            Sync GitLab
+          </button>
+          <button (click)="exportPDF()" [disabled]="isExportingPdf" class="px-4 py-2 bg-blue-50 text-blue-600 border border-blue-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all flex items-center gap-2 disabled:opacity-50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            {{ isExportingPdf ? '...' : 'Export PDF' }}
+          </button>
+          <button (click)="exportExcel()" [disabled]="isExportingExcel" class="px-4 py-2 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2 disabled:opacity-50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            {{ isExportingExcel ? '...' : 'Export Excel' }}
+          </button>
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
         </div>
       </div>
 
@@ -143,8 +163,18 @@ import { DashboardService } from '../services/dashboard.service';
 })
 export class DashboardComponent implements OnInit {
   overview = signal<any>(null);
+<<<<<<< HEAD
 
   constructor(private dashboardService: DashboardService) {}
+=======
+  isExportingPdf = false;
+  isExportingExcel = false;
+
+  constructor(
+    private dashboardService: DashboardService,
+    private reportService: ReportService
+  ) {}
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
   ngOnInit() {
     this.dashboardService.getOverview().subscribe(data => {
@@ -156,4 +186,49 @@ export class DashboardComponent implements OnInit {
     const tasks = this.overview()?.stats?.tasks || [];
     return tasks.reduce((acc: number, curr: any) => acc + curr.count, 0) || 1;
   }
+<<<<<<< HEAD
+=======
+
+  syncGit() {
+    alert('Synchronization GitLab en cours...');
+  }
+
+  exportPDF() {
+    this.isExportingPdf = true;
+    this.reportService.exportIncidentsPDF().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'incidents_report.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.isExportingPdf = false;
+      },
+      error: () => {
+        alert('Erreur lors de la génération du PDF');
+        this.isExportingPdf = false;
+      }
+    });
+  }
+
+  exportExcel() {
+    this.isExportingExcel = true;
+    this.reportService.exportTasksExcel().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'tasks_report.xlsx';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.isExportingExcel = false;
+      },
+      error: () => {
+        alert('Erreur lors de la génération du fichier Excel');
+        this.isExportingExcel = false;
+      }
+    });
+  }
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 }

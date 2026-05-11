@@ -6,9 +6,15 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
+<<<<<<< HEAD
 // Disable caching for API responses (solves Angular withFetch aggressive caching)
 app.use((req, res, next) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -25,19 +31,18 @@ const db = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME
 });
+=======
+const db = require('./config/db');
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
-db.connect((err) => {
-    if (err) {
-        console.error('Error connecting to MySQL: ' + err.stack);
-        return;
-    }
-    console.log('Connected to MySQL database as id ' + db.threadId);
-});
+// No need for db.connect() with a pool, it connects on demand.
+console.log('Using MySQL connection pool from config/db.js');
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/roles', require('./routes/roleRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+<<<<<<< HEAD
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
@@ -51,6 +56,19 @@ app.use('/api/documents', require('./routes/documentRoutes'));
 
 // Serve uploads statically
 app.use('/uploads', express.static('uploads'));
+=======
+app.use('/api/applications', require('./routes/applicationRoutes'));
+app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/sprints', require('./routes/sprintRoutes'));
+app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/api/incidents', require('./routes/incidentRoutes'));
+app.use('/api/git', require('./routes/gitRoutes'));
+app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/documents', require('./routes/documentRoutes'));
+app.use('/api/improvements', require('./routes/improvementRoutes'));
+app.use('/api/deployments', require('./routes/deploymentRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+>>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
 app.get('/', (req, res) => {
     res.send('Koda API is running and connected to DB!');

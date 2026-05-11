@@ -1,0 +1,18 @@
+const { Client } = require('ssh2');
+const conn = new Client();
+conn.on('ready', () => {
+  conn.exec('export PATH=/opt/alt/alt-nodejs22/root/usr/bin:$PATH && cd koda && node dist/frontend/server/server.mjs', (err, stream) => {
+    if (err) throw err;
+    stream.on('close', (code) => console.log('Exited with code ' + code))
+          .on('data', (data) => console.log('STDOUT: ' + data))
+          .stderr.on('data', (data) => console.log('STDERR: ' + data));
+    
+    // Give it 5 seconds to start then kill it
+    setTimeout(() => {
+      console.log('Timeout reached, closing connection');
+      conn.end();
+    }, 5000);
+  });
+}).connect({
+  host: '145.79.20.74', port: 65002, username: 'u733420802', password: '20052910Oo_'
+});
