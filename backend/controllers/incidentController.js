@@ -1,15 +1,4 @@
-const mysql = require('mysql2/promise');
-require('dotenv').config();
-
-const db = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+const db = require('../config/db');
 
 exports.getAll = async (req, res) => {
     try {
@@ -36,7 +25,7 @@ exports.create = async (req, res) => {
         const { application_id, user_id, title, description, status } = req.body;
         const [result] = await db.query(
             'INSERT INTO incidents (application_id, user_id, title, description, status) VALUES (?, ?, ?, ?, ?)',
-            [req.body.application_id, req.body.user_id, req.body.title, req.body.description, req.body.status]
+            [application_id, user_id, title, description, status]
         );
         res.status(201).json({ id: result.insertId, message: 'Created successfully' });
     } catch (error) {
@@ -50,7 +39,7 @@ exports.update = async (req, res) => {
         const { application_id, user_id, title, description, status } = req.body;
         await db.query(
             'UPDATE incidents SET application_id = ?, user_id = ?, title = ?, description = ?, status = ? WHERE id = ?',
-            [req.body.application_id, req.body.user_id, req.body.title, req.body.description, req.body.status, id]
+            [application_id, user_id, title, description, status, id]
         );
         res.json({ message: 'Updated successfully' });
     } catch (error) {
@@ -67,8 +56,6 @@ exports.remove = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-<<<<<<< HEAD
-=======
 
 exports.getCorrectiveActions = async (req, res) => {
     try {
@@ -90,7 +77,7 @@ exports.addCorrectiveAction = async (req, res) => {
     try {
         const { id } = req.params;
         const { description } = req.body;
-        const user_id = req.user ? req.user.id : null; // Assuming verifyToken sets req.user
+        const user_id = req.user ? req.user.id : null;
         
         await db.query(
             'INSERT INTO corrective_actions (incident_id, user_id, description) VALUES (?, ?, ?)',
@@ -101,4 +88,3 @@ exports.addCorrectiveAction = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)

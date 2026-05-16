@@ -7,11 +7,7 @@ import { isPlatformBrowser } from '@angular/common';
   providedIn: 'root'
 })
 export class AuthService {
-<<<<<<< HEAD
   private apiUrl = 'http://localhost:5000/api/auth';
-=======
-  private apiUrl = '/api/auth';
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 

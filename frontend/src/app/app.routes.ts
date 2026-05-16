@@ -50,13 +50,10 @@ export const routes: Routes = [
       { path: 'projects/:id/members', loadComponent: () => import('./projects/project-members/project-members').then(m => m.ProjectMembersComponent), canActivate: [authGuard] },
       { path: 'projects/:id/documents', loadComponent: () => import('./projects/project-documents/project-documents').then(m => m.ProjectDocumentsComponent), canActivate: [authGuard] },
 
-<<<<<<< HEAD
-=======
       { path: 'sprints', loadComponent: () => import('./sprints/sprint-list/sprint-list').then(m => m.SprintListComponent) },
       { path: 'sprints/new', loadComponent: () => import('./sprints/sprint-form/sprint-form').then(m => m.SprintFormComponent) },
       { path: 'sprints/edit/:id', loadComponent: () => import('./sprints/sprint-form/sprint-form').then(m => m.SprintFormComponent) },
 
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
       { path: 'incidents', loadComponent: () => import('./incidents/incident-list/incident-list').then(m => m.IncidentListComponent) },
       { path: 'incidents/new', loadComponent: () => import('./incidents/incident-form/incident-form').then(m => m.IncidentFormComponent) },
       { path: 'incidents/edit/:id', loadComponent: () => import('./incidents/incident-form/incident-form').then(m => m.IncidentFormComponent) },
@@ -64,14 +61,11 @@ export const routes: Routes = [
       { path: 'deployments', loadComponent: () => import('./deployments/deployment-list/deployment-list').then(m => m.DeploymentListComponent) },
       { path: 'deployments/new', loadComponent: () => import('./deployments/deployment-form/deployment-form').then(m => m.DeploymentFormComponent) },
       { path: 'deployments/edit/:id', loadComponent: () => import('./deployments/deployment-form/deployment-form').then(m => m.DeploymentFormComponent) },
-<<<<<<< HEAD
-      { path: 'tasks/board', loadComponent: () => import('./tasks/task-board/task-board').then(m => m.TaskBoardComponent) },
-=======
 
       { path: 'git-commits', loadComponent: () => import('./git/git-commits/git-commits').then(m => m.GitCommitsComponent) },
       { path: 'tasks/board', loadComponent: () => import('./tasks/task-board/task-board').then(m => m.TaskBoardComponent) },
       { path: 'improvements', loadComponent: () => import('./improvements/improvements').then(m => m.ImprovementsComponent) },
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
+      { path: 'settings', loadComponent: () => import('./settings/settings').then(m => m.SettingsComponent) },
 
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

@@ -6,11 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class SprintService {
-<<<<<<< HEAD
   private apiUrl = 'http://localhost:5000/api/sprints';
-=======
-  private apiUrl = '/api/sprints';
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
   constructor(private http: HttpClient) { }
 
@@ -33,5 +29,25 @@ export class SprintService {
 
   deleteSprint(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  getChecklist(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/checklist`);
+  }
+
+  updateChecklist(id: number, items: any[]): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}/checklist`, { items });
+  }
+
+  getHistory(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/history`);
+  }
+
+  delaySprint(id: number, delayData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/delay`, delayData);
+  }
+
+  closeSprint(id: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/close`, {});
   }
 }

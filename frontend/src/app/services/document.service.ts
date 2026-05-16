@@ -6,13 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class DocumentService {
-<<<<<<< HEAD
   private apiUrl = 'http://localhost:5000/api/documents';
   public uploadUrl = 'http://localhost:5000/uploads';
-=======
-  private apiUrl = '/api/documents';
-  public uploadUrl = '/uploads';
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
   constructor(private http: HttpClient) {}
 

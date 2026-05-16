@@ -6,11 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class TaskService {
-<<<<<<< HEAD
   private apiUrl = 'http://localhost:5000/api/tasks';
-=======
-  private apiUrl = '/api/tasks';
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
   constructor(private http: HttpClient) { }
 

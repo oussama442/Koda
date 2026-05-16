@@ -1,10 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardService } from '../services/dashboard.service';
-<<<<<<< HEAD
-=======
 import { ReportService } from '../services/report.service';
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
 @Component({
   selector: 'app-dashboard',
@@ -18,10 +15,6 @@ import { ReportService } from '../services/report.service';
           <h2 class="text-4xl font-black text-gray-900 tracking-tight uppercase">Cockpit Global</h2>
           <p class="text-sm font-medium text-gray-400 mt-1 uppercase tracking-widest">Vue d'ensemble de l'infrastructure Koda</p>
         </div>
-<<<<<<< HEAD
-        <div class="px-4 py-2 bg-blue-50 border border-blue-100 rounded-2xl">
-          <span class="text-[10px] font-black text-blue-600 uppercase tracking-tighter">Dernière mise à jour: Aujourd'hui</span>
-=======
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <button (click)="syncGit()" class="px-4 py-2 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 shadow-lg shadow-slate-200 transition-all flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -35,7 +28,6 @@ import { ReportService } from '../services/report.service';
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             {{ isExportingExcel ? '...' : 'Export Excel' }}
           </button>
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
         </div>
       </div>
 
@@ -103,7 +95,7 @@ import { ReportService } from '../services/report.service';
               </div>
               <div class="w-full h-3 bg-gray-50 rounded-full overflow-hidden">
                 <div 
-                  class="h-full rounded-full transition-all duration-1000"
+                   class="h-full rounded-full transition-all duration-1000"
                   [style.width.%]="(stat.count / getTotalTasks()) * 100"
                   [class]="stat.status === 'Done' ? 'bg-emerald-500' : stat.status === 'In Progress' ? 'bg-blue-500' : 'bg-gray-300'"
                 ></div>
@@ -163,10 +155,6 @@ import { ReportService } from '../services/report.service';
 })
 export class DashboardComponent implements OnInit {
   overview = signal<any>(null);
-<<<<<<< HEAD
-
-  constructor(private dashboardService: DashboardService) {}
-=======
   isExportingPdf = false;
   isExportingExcel = false;
 
@@ -174,7 +162,6 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private reportService: ReportService
   ) {}
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
   ngOnInit() {
     this.dashboardService.getOverview().subscribe(data => {
@@ -186,8 +173,6 @@ export class DashboardComponent implements OnInit {
     const tasks = this.overview()?.stats?.tasks || [];
     return tasks.reduce((acc: number, curr: any) => acc + curr.count, 0) || 1;
   }
-<<<<<<< HEAD
-=======
 
   syncGit() {
     alert('Synchronization GitLab en cours...');
@@ -230,5 +215,4 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 }

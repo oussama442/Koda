@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = '/api/users';
+  private apiUrl = 'http://localhost:5000/api/users';
 
   constructor(private http: HttpClient) {}
 
@@ -24,6 +24,10 @@ export class UserService {
 
   updateUser(id: number, user: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${id}`, user);
+  }
+
+  updateProfile(profileData: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/profile`, profileData);
   }
 
   deleteUser(id: number): Observable<any> {

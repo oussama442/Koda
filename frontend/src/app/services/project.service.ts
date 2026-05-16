@@ -6,11 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ProjectService {
-<<<<<<< HEAD
   private apiUrl = 'http://localhost:5000/api/projects';
-=======
-  private apiUrl = '/api/projects';
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
 
   constructor(private http: HttpClient) {}
 

@@ -1,16 +1,5 @@
-const mysql = require('mysql2/promise');
+const db = require('../config/db');
 const bcrypt = require('bcryptjs');
-require('dotenv').config();
-
-const db = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
 
 exports.getUsers = async (req, res) => {
     try {
@@ -61,6 +50,30 @@ exports.updateUser = async (req, res) => {
             [full_name, username, email, is_global_admin, id]
         );
         res.json({ message: 'User updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const id = req.user.id; // From authMiddleware
+        const { full_name, email, password } = req.body;
+        
+        let query = 'UPDATE users SET full_name = ?, email = ?';
+        let params = [full_name, email];
+        
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            query += ', password = ?';
+            params.push(hashedPassword);
+        }
+        
+        query += ' WHERE id = ?';
+        params.push(id);
+        
+        await db.query(query, params);
+        res.json({ message: 'Profile updated successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

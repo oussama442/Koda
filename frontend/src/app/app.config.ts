@@ -10,11 +10,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes), 
-<<<<<<< HEAD
-    provideClientHydration(withEventReplay()),
-=======
     provideClientHydration(withEventReplay(), withNoHttpTransferCache()),
->>>>>>> 11e8399 (feat: upload latest version of Koda ERP with full module integration and glassmorphism UI)
     provideHttpClient(withInterceptors([authInterceptor]))
   ]
 };
