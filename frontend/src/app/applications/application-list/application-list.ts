@@ -20,13 +20,13 @@ import { ApplicationService } from '../../services/application.service';
         <table class='w-full text-left'>
           <thead>
             <tr class='bg-gray-50'>
-              <th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>name</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>description</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>current status</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>github repo url</th>
+              <th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>name</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>description</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>current status</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>gitlab repo url</th>
               <th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right'>Action</th>
             </tr>
           </thead>
           <tbody class='divide-y divide-gray-100'>
             <tr *ngFor='let item of items()' class='hover:bg-gray-50 transition-colors'>
-              <td class='px-6 py-4 font-bold text-gray-700'>{{ item.name }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.description }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.current_status }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.github_repo_url }}</td>
+              <td class='px-6 py-4 font-bold text-gray-700'>{{ item.name }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.description }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.current_status }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.gitlab_repo_url }}</td>
               <td class='px-6 py-4 text-right'>
                 <div class='flex items-center justify-end gap-2'>
                   <a [routerLink]="['/applications/edit', item.id]" class='text-xs font-bold text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg'>Edit</a>

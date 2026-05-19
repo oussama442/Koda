@@ -132,7 +132,7 @@ const dashboardRoute =
 "module.exports = router;\n";
 
 const modules = [
-    { name: 'application', table: 'applications', fields: ['name', 'description', 'current_status', 'github_repo_url'], hasSoftDelete: true },
+    { name: 'application', table: 'applications', fields: ['name', 'description', 'current_status', 'gitlab_repo_url'], hasSoftDelete: true },
     { name: 'project', table: 'projects', fields: ['application_id', 'name', 'description', 'start_date', 'end_date'], hasSoftDelete: true },
     { name: 'incident', table: 'incidents', fields: ['application_id', 'user_id', 'title', 'description', 'status'], hasSoftDelete: true },
     { name: 'deployment', table: 'deployments', fields: ['application_id', 'version', 'deployed_at', 'pre_deploy_actions', 'post_deploy_actions'], hasSoftDelete: false }

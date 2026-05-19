@@ -17,7 +17,7 @@ import { ApplicationService } from '../../services/application.service';
 <div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>Application Name</label><input type='text' formControlName='name' class='koda-input' placeholder='Enter application name'></div>
 <div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>Description</label><input type='text' formControlName='description' class='koda-input' placeholder='Enter description'></div>
 <div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>Status</label><select formControlName='current_status' class='koda-input'><option value=''>Select option...</option><option value='Study'>Study</option><option value='Development'>Development</option><option value='Production'>Production</option></select></div>
-<div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>GitHub Repository</label><input type='text' formControlName='github_repo_url' class='koda-input' placeholder='Enter github repository'></div>          <div class='p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3'>
+<div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>GitLab Repository</label><input type='text' formControlName='gitlab_repo_url' class='koda-input' placeholder='Enter gitlab repository'></div>          <div class='p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3'>
             <a routerLink='/applications' class='px-4 py-2 bg-white text-gray-600 font-bold border rounded-lg'>Cancel</a>
             <button type='submit' class='koda-btn-primary'>Save</button>
           </div>
@@ -37,7 +37,7 @@ export class ApplicationFormComponent implements OnInit {
       name: [''],
       description: [''],
       current_status: [''],
-      github_repo_url: ['']
+      gitlab_repo_url: ['']
     });
   }
 

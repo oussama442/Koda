@@ -33,10 +33,10 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
     try {
-        const { name, description, current_status, github_repo_url } = req.body;
+        const { name, description, current_status, gitlab_repo_url } = req.body;
         const [result] = await db.query(
-            'INSERT INTO applications (name, description, current_status, github_repo_url) VALUES (?, ?, ?, ?)',
-            [req.body.name, req.body.description, req.body.current_status, req.body.github_repo_url]
+            'INSERT INTO applications (name, description, current_status, gitlab_repo_url) VALUES (?, ?, ?, ?)',
+            [req.body.name, req.body.description, req.body.current_status, req.body.gitlab_repo_url]
         );
         res.status(201).json({ id: result.insertId, message: 'Created successfully' });
     } catch (error) {
@@ -47,10 +47,10 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, current_status, github_repo_url } = req.body;
+        const { name, description, current_status, gitlab_repo_url } = req.body;
         await db.query(
-            'UPDATE applications SET name = ?, description = ?, current_status = ?, github_repo_url = ? WHERE id = ?',
-            [req.body.name, req.body.description, req.body.current_status, req.body.github_repo_url, id]
+            'UPDATE applications SET name = ?, description = ?, current_status = ?, gitlab_repo_url = ? WHERE id = ?',
+            [req.body.name, req.body.description, req.body.current_status, req.body.gitlab_repo_url, id]
         );
         res.json({ message: 'Updated successfully' });
     } catch (error) {
