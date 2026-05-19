@@ -105,7 +105,7 @@ export class SprintFormComponent implements OnInit {
       
     ob.subscribe({
       next: () => this.router.navigate(['/sprints']),
-      error: (e: any) => alert('Erreur: ' + e.message)
+      error: (e: any) => alert('Erreur: ' + (e.error?.message || e.message))
     });
   }
 }

@@ -6,6 +6,7 @@ import { TaskService } from '../../services/task.service';
 import { ProjectService } from '../../services/project.service';
 import { SprintService } from '../../services/sprint.service';
 import { UserService } from '../../services/user.service';
+import { ReportService } from '../../services/report.service';
 
 @Component({
   selector: 'app-task-board',
@@ -54,6 +55,13 @@ import { UserService } from '../../services/user.service';
             class="px-5 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-2xl text-sm font-black hover:bg-blue-50 transition-all disabled:opacity-30 disabled:border-gray-200 disabled:text-gray-400"
           >
             + Sprint
+          </button>
+
+          <button 
+            (click)="exportExcel()" 
+            class="px-5 py-3 bg-white border-2 border-emerald-600 text-emerald-600 rounded-2xl text-sm font-black hover:bg-emerald-50 transition-all"
+          >
+            Exporter Excel
           </button>
 
           <button 
@@ -167,10 +175,23 @@ import { UserService } from '../../services/user.service';
               <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Mise à jour (Daily Scrum)</label>
               <textarea 
                 [(ngModel)]="statusComment"
-                rows="4" 
+                rows="3" 
                 placeholder="Rédigez un court commentaire sur l'avancement..."
                 class="w-full px-6 py-5 bg-gray-50 border border-gray-100 rounded-[2rem] text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 transition-all resize-none"
               ></textarea>
+            </div>
+
+            <div *ngIf="activeTaskComments().length > 0" class="space-y-4">
+              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Mises à jour quotidiennes (Scrum)</label>
+              <div class="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                <div *ngFor="let comment of activeTaskComments()" class="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-1">
+                  <div class="flex justify-between items-center">
+                    <span class="text-xs font-black text-gray-900">{{ comment.user_name || 'Collaborateur' }}</span>
+                    <span class="text-[9px] font-black text-gray-400 uppercase">{{ comment.created_at | date:'short' }}</span>
+                  </div>
+                  <p class="text-xs text-gray-600 font-medium leading-relaxed">{{ comment.comment }}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -299,6 +320,7 @@ export class TaskBoardComponent implements OnInit {
   tempStatus: string = '';
   tempSprintId: number | null = null;
   statusComment: string = '';
+  activeTaskComments = signal<any[]>([]);
 
   newTask: any = { title: '', description: '', user_id: null, sprint_id: null, status: 'To Do' };
   newSprint: any = { name: '', start_date: '', end_date: '', status: 'Planned' };
@@ -309,7 +331,8 @@ export class TaskBoardComponent implements OnInit {
     private sprintService: SprintService,
     private userService: UserService,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private reportService: ReportService
   ) {}
 
   ngOnInit() {
@@ -386,10 +409,14 @@ export class TaskBoardComponent implements OnInit {
     this.tempStatus = task.status;
     this.tempSprintId = task.sprint_id;
     this.statusComment = '';
+    this.activeTaskComments.set([]);
     this.showStatusModal = true;
+    this.taskService.getTask(task.id).subscribe(data => {
+      this.activeTaskComments.set(data.comments || []);
+    });
   }
 
-  closeStatusModal() { this.showStatusModal = false; this.activeTask = null; }
+  closeStatusModal() { this.showStatusModal = false; this.activeTask = null; this.activeTaskComments.set([]); }
 
   updateTaskStatus() {
     if (!this.activeTask) return;
@@ -402,6 +429,18 @@ export class TaskBoardComponent implements OnInit {
     this.taskService.updateTask(this.activeTask.id, updateData).subscribe(() => {
       this.loadTasks();
       this.closeStatusModal();
+    });
+  }
+
+  exportExcel() {
+    this.reportService.exportTasksExcel().subscribe((blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tasks_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     });
   }
 }

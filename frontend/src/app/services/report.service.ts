@@ -5,15 +5,15 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root'
 })
 export class ReportService {
-  private apiUrl = '/api/reports';
+  private apiUrl = 'http://localhost:5000/api/reports';
 
   constructor(private http: HttpClient) {}
 
   exportTasksExcel() {
-    return this.http.get(`${this.apiUrl}/export/tasks/excel`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/tasks/excel`, { responseType: 'blob' });
   }
 
   exportIncidentsPDF() {
-    return this.http.get(`${this.apiUrl}/export/incidents/pdf`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/incidents/pdf`, { responseType: 'blob' });
   }
 }

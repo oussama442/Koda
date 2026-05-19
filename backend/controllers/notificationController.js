@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const emailService = require('../services/emailService');
 
 exports.getNotifications = async (req, res) => {
     try {
@@ -45,6 +46,18 @@ exports.createNotification = async (userId, title, message, type, link) => {
             [userId, title, message, type, link]
         );
         console.log('Notification created successfully');
+
+        // Query user email to send an email alert
+        const [users] = await db.query('SELECT email FROM users WHERE id = ?', [userId]);
+        if (users.length > 0 && users[0].email) {
+            console.log(`Sending email notification to ${users[0].email}`);
+            await emailService.sendNotificationEmail(
+                users[0].email,
+                `[Koda ERP] ${title}`,
+                `${message}\n\nAccédez-y ici: http://localhost:4200${link}`
+            );
+        }
+
         return true;
     } catch (error) {
         console.error('Failed to create notification:', error);

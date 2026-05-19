@@ -29,4 +29,12 @@ export class IncidentService {
   delete(id: number): Observable<any> {
     return this.http.delete<any>(this.apiUrl + '/' + id);
   }
+
+  getCorrectiveActions(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/corrective-actions`);
+  }
+
+  addCorrectiveAction(id: number, description: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/corrective-actions`, { description });
+  }
 }

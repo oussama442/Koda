@@ -28,12 +28,12 @@ import { AuthService } from '../../services/auth.service';
               {{ item.project_name || 'Projet inconnu' }}
             </div>
             <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <a [routerLink]="['/sprints/edit', item.id]" *ngIf="isAdmin()" class="p-2 text-gray-400 hover:text-[var(--color-primary)]">
+              <a [routerLink]="['/sprints/edit', item.id]" *ngIf="isAdmin(item)" class="p-2 text-gray-400 hover:text-[var(--color-primary)]">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-5M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4L16.5 3.5z" />
                 </svg>
               </a>
-              <button (click)="openDelete(item)" *ngIf="isAdmin()" class="p-2 text-gray-400 hover:text-red-600">
+              <button (click)="openDelete(item)" *ngIf="isAdmin(item)" class="p-2 text-gray-400 hover:text-red-600">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
@@ -81,7 +81,7 @@ import { AuthService } from '../../services/auth.service';
               <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">{{ selectedSprint?.project_name }}</p>
             </div>
             <div class="flex items-center gap-4">
-              <button *ngIf="selectedSprint?.status !== 'Completed'" (click)="closeSprint()" 
+              <button *ngIf="selectedSprint?.status !== 'Completed' && isAdmin(selectedSprint)" (click)="closeSprint()" 
                       class="px-4 py-2 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-100 transition-all">
                 Clôturer le Sprint
               </button>
@@ -105,7 +105,7 @@ import { AuthService } from '../../services/auth.service';
                   </div>
                   <div class="flex items-center gap-3">
                     <span *ngIf="isSaving" class="text-[9px] font-black text-blue-600 uppercase animate-pulse">Sauvegarde...</span>
-                    <button (click)="addChecklistItem()" class="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest flex items-center gap-1">
+                    <button *ngIf="isAdmin(selectedSprint)" (click)="addChecklistItem()" class="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest flex items-center gap-1">
                       + AJOUTER
                     </button>
                   </div>
@@ -117,6 +117,7 @@ import { AuthService } from '../../services/auth.service';
                       type="checkbox" 
                       [(ngModel)]="item.is_checked" 
                       (change)="updateChecklist()"
+                      [disabled]="!isAdmin(selectedSprint)"
                       class="w-5 h-5 rounded-lg border-gray-200 text-blue-600 focus:ring-blue-100"
                     >
                     <input 
@@ -128,7 +129,7 @@ import { AuthService } from '../../services/auth.service';
                       [class.opacity-40]="item.is_checked"
                       placeholder="Nouveau pré-requis..."
                     >
-                    <button (click)="removeChecklistItem(i)" class="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all">
+                    <button *ngIf="isAdmin(selectedSprint)" (click)="removeChecklistItem(i)" class="opacity-0 group-hover:opacity-100 p-1 text-gray-300 hover:text-red-500 transition-all">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   </div>
@@ -139,7 +140,7 @@ import { AuthService } from '../../services/auth.service';
               </div>
 
               <!-- Delay Section -->
-              <div class="pt-8 border-t border-gray-100">
+              <div *ngIf="isAdmin(selectedSprint)" class="pt-8 border-t border-gray-100">
                 <h4 class="text-xs font-black text-red-600 uppercase tracking-widest mb-4">Reporter le Sprint</h4>
                 <div class="p-6 bg-red-50 rounded-3xl space-y-4">
                   <div class="grid grid-cols-2 gap-4">
@@ -245,8 +246,14 @@ export class SprintListComponent implements OnInit {
     this.service.getSprints().subscribe({ next: (data: any) => this.items.set(data) });
   }
 
-  isAdmin() { 
-    return this.user?.is_global_admin || this.user?.role === 'Admin' || this.user?.role === 'Project Manager'; 
+  isAdmin(sprint?: any) { 
+    if (!this.user) return false;
+    if (this.user.is_global_admin || this.user.role === 'Admin') return true;
+    if (sprint && sprint.chef_projet_id == this.user.id) return true;
+    if (!sprint) {
+      return this.items().some(s => s.chef_projet_id == this.user.id);
+    }
+    return false;
   }
 
   openDelete(item: any) { this.itemToDelete = item; this.showDeleteModal = true; }

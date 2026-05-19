@@ -83,6 +83,26 @@ exports.addCorrectiveAction = async (req, res) => {
             'INSERT INTO corrective_actions (incident_id, user_id, description) VALUES (?, ?, ?)',
             [id, user_id, description]
         );
+
+        // Also update the incident status to 'Resolved'
+        await db.query(
+            'UPDATE incidents SET status = ?, updated_at = NOW() WHERE id = ?',
+            ['Resolved', id]
+        );
+
+        // Notify the reporter if exists
+        const [incident] = await db.query('SELECT user_id, title FROM incidents WHERE id = ?', [id]);
+        if (incident.length && incident[0].user_id) {
+            const { createNotification } = require('./notificationController');
+            await createNotification(
+                incident[0].user_id,
+                'Incident Résolu',
+                `L'incident "${incident[0].title}" a été résolu. Action corrective: ${description}`,
+                'Incident',
+                '/incidents'
+            );
+        }
+
         res.status(201).json({ message: 'Corrective action added successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
