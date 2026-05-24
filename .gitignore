@@ -1,4 +1,22 @@
+# Dependencies
 node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Environment Variables
 .env
+backend/.env
+frontend/.env
+
+# Build outputs
 dist/
+frontend/dist/
+.angular/
+
+# Editor directories
 .vscode/
+.idea/
+
+# User Uploads
+backend/uploads/
+uploads/
