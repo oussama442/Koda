@@ -30,6 +30,12 @@ export class UserService {
     return this.http.put<any>(`${this.apiUrl}/profile`, profileData);
   }
 
+  uploadAvatar(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return this.http.post<any>(`${this.apiUrl}/profile/avatar`, formData);
+  }
+
   deleteUser(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);
   }

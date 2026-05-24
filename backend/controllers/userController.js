@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 exports.getUsers = async (req, res) => {
     try {
-        const [users] = await db.query('SELECT id, full_name, username, email, is_global_admin, created_at FROM users WHERE deleted_at IS NULL');
+        const [users] = await db.query('SELECT id, full_name, username, email, is_global_admin, avatar, created_at FROM users WHERE deleted_at IS NULL');
         res.json(users);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -13,7 +13,7 @@ exports.getUsers = async (req, res) => {
 exports.getUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const [users] = await db.query('SELECT id, full_name, username, email, is_global_admin FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
+        const [users] = await db.query('SELECT id, full_name, username, email, is_global_admin, avatar FROM users WHERE id = ? AND deleted_at IS NULL', [id]);
         if (users.length === 0) return res.status(404).json({ message: 'User not found' });
         res.json(users[0]);
     } catch (error) {
@@ -103,6 +103,19 @@ exports.deleteUser = async (req, res) => {
         } else {
             res.status(404).json({ message: 'User not found' });
         }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+        await db.query('UPDATE users SET avatar = ? WHERE id = ?', [avatarUrl, req.user.id]);
+        res.json({ message: 'Avatar updated successfully', avatar: avatarUrl });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

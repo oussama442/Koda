@@ -43,7 +43,8 @@ exports.login = async (req, res) => {
                 full_name: user.full_name,
                 username: user.username,
                 email: user.email,
-                is_global_admin: user.is_global_admin
+                is_global_admin: user.is_global_admin,
+                avatar: user.avatar
             }
         });
 
@@ -56,7 +57,7 @@ exports.login = async (req, res) => {
 exports.getMe = async (req, res) => {
     // This would be called with a verifyToken middleware
     try {
-        const [users] = await db.query('SELECT id, full_name, username, email, is_global_admin FROM users WHERE id = ?', [req.user.id]);
+        const [users] = await db.query('SELECT id, full_name, username, email, is_global_admin, avatar FROM users WHERE id = ?', [req.user.id]);
         if (users.length === 0) return res.status(404).json({ message: 'User not found' });
         res.json(users[0]);
     } catch (error) {

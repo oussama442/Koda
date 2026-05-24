@@ -43,6 +43,13 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
+  updateCurrentUser(user: any) {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('koda_user', JSON.stringify(user));
+    }
+    this.currentUserSubject.next(user);
+  }
+
   isLoggedIn(): boolean {
     if (isPlatformBrowser(this.platformId)) {
       return !!localStorage.getItem('koda_token');

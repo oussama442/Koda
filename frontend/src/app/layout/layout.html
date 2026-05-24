@@ -45,9 +45,10 @@
         [class.justify-center]="!isSidebarOpen"
         [class.px-0]="!isSidebarOpen"
       >
-        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[var(--color-primary)] font-bold shrink-0">
+        <div *ngIf="!user?.avatar" class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[var(--color-primary)] font-bold shrink-0 overflow-hidden">
           {{ user?.full_name?.charAt(0) }}
         </div>
+        <img *ngIf="user?.avatar" [src]="'http://localhost:5000' + user?.avatar" class="w-10 h-10 rounded-full object-cover shrink-0 border border-gray-200" alt="Avatar">
         <div *ngIf="isSidebarOpen" class="flex-1 min-w-0">
           <p class="text-sm font-bold text-gray-900 truncate">{{ user?.full_name }}</p>
           <p class="text-xs text-gray-500 truncate">Administrator</p>
