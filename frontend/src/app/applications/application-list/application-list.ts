@@ -17,8 +17,9 @@ import { ApplicationService } from '../../services/application.service';
         <a routerLink='/applications/new' class='koda-btn-primary'>Add Application</a>
       </div>
       <div class='koda-card overflow-hidden'>
-        <table class='w-full text-left'>
-          <thead>
+        <div class="overflow-x-auto">
+          <table class='w-full text-left whitespace-nowrap md:whitespace-normal'>
+            <thead>
             <tr class='bg-gray-50'>
               <th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>name</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>description</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>current status</th><th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase'>gitlab repo url</th>
               <th class='px-6 py-4 text-xs font-bold text-gray-500 uppercase text-right'>Action</th>
@@ -29,6 +30,7 @@ import { ApplicationService } from '../../services/application.service';
               <td class='px-6 py-4 font-bold text-gray-700'>{{ item.name }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.description }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.current_status }}</td><td class='px-6 py-4 font-bold text-gray-700'>{{ item.gitlab_repo_url }}</td>
               <td class='px-6 py-4 text-right'>
                 <div class='flex items-center justify-end gap-2'>
+                  <a [routerLink]="['/applications/details', item.id]" class='text-xs font-bold text-gray-600 border border-gray-200 px-3 py-1.5 rounded-lg'>Details</a>
                   <a [routerLink]="['/applications/edit', item.id]" class='text-xs font-bold text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg'>Edit</a>
                   <button (click)='openDelete(item)' class='text-xs font-bold text-red-600 border border-red-200 px-3 py-1.5 rounded-lg'>Delete</button>
                 </div>
@@ -39,6 +41,7 @@ import { ApplicationService } from '../../services/application.service';
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 

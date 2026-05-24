@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { IncidentService } from '../../services/incident.service';
 import { ApplicationService } from '../../services/application.service';
+import { DocumentService } from '../../services/document.service';
 
 @Component({
   selector: 'app-incident-form',
@@ -18,9 +19,15 @@ import { ApplicationService } from '../../services/application.service';
 <div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>Incident Title</label><input type='text' formControlName='title' class='koda-input' placeholder='Enter incident title'></div>
 <div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>Detailed Description</label><input type='text' formControlName='description' class='koda-input' placeholder='Enter detailed description'></div>
 <div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>Severity Status</label><select formControlName='status' class='koda-input'><option value=''>Select option...</option><option value='Low'>Low</option><option value='Medium'>Medium</option><option value='High'>High</option><option value='Critical'>Critical</option></select></div>
-<div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>Linked Application (Required)</label><select formControlName='application_id' class='koda-input'><option value=''>Select Application...</option><option *ngFor='let app of apps' [value]='app.id'>{{app.name}}</option></select></div>          <div class='p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3'>
+<div class='px-6 mb-6'><label class='block text-sm font-bold text-gray-700 mb-2'>Linked Application (Required)</label><select formControlName='application_id' class='koda-input'><option value=''>Select Application...</option><option *ngFor='let app of apps' [value]='app.id'>{{app.name}}</option></select></div>          
+<div class='px-6 mb-6'>
+  <label class='block text-sm font-bold text-gray-700 mb-2'>Document / Pièce jointe</label>
+  <input type='file' (change)="onFileSelected($event)" class='koda-input'>
+  <p *ngIf="selectedFile" class="text-xs text-orange-600 font-bold mt-2">Fichier sélectionné : {{ selectedFile.name }}</p>
+</div>
+          <div class='p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3'>
             <a routerLink='/incidents' class='px-4 py-2 bg-white text-gray-600 font-bold border rounded-lg'>Cancel</a>
-            <button type='submit' class='koda-btn-primary'>Save</button>
+            <button type='submit' [disabled]="isLoading" class='koda-btn-primary'>{{ isLoading ? 'En cours...' : 'Save' }}</button>
           </div>
         </form>
       </div>
@@ -32,8 +39,10 @@ export class IncidentFormComponent implements OnInit {
   isEdit = false;
   itemId: number | null = null;
   apps: any[] = [];
+  selectedFile: File | null = null;
+  isLoading = false;
 
-  constructor(private fb: FormBuilder, private service: IncidentService, private router: Router, private route: ActivatedRoute, private appService: ApplicationService) {
+  constructor(private fb: FormBuilder, private service: IncidentService, private router: Router, private route: ActivatedRoute, private appService: ApplicationService, private documentService: DocumentService) {
     this.form = this.fb.group({
       title: [''],
       description: [''],
@@ -53,11 +62,38 @@ export class IncidentFormComponent implements OnInit {
     });
   }
 
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
+  }
+
   onSubmit() {
+    this.isLoading = true;
     if (this.isEdit && this.itemId) {
-      this.service.update(this.itemId, this.form.value).subscribe({ next: () => this.router.navigate(['/incidents']) });
+      this.service.update(this.itemId, this.form.value).subscribe({ 
+        next: () => {
+          if (this.selectedFile) {
+            this.documentService.upload(this.selectedFile, undefined, undefined, this.itemId!).subscribe(() => {
+              this.router.navigate(['/incidents']);
+            });
+          } else {
+            this.router.navigate(['/incidents']);
+          }
+        },
+        error: () => this.isLoading = false
+      });
     } else {
-      this.service.create(this.form.value).subscribe({ next: () => this.router.navigate(['/incidents']) });
+      this.service.create(this.form.value).subscribe({ 
+        next: (res: any) => {
+          if (this.selectedFile && res.id) {
+            this.documentService.upload(this.selectedFile, undefined, undefined, res.id).subscribe(() => {
+              this.router.navigate(['/incidents']);
+            });
+          } else {
+            this.router.navigate(['/incidents']);
+          }
+        },
+        error: () => this.isLoading = false
+      });
     }
   }
 }

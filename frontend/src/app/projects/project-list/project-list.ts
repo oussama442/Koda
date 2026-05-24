@@ -63,7 +63,7 @@ import { AuthService } from '../../services/auth.service';
             <a [routerLink]="['/tasks/board']" [queryParams]="{project_id: item.id}" class="flex-1 min-w-[80px] px-2 py-3 bg-white text-gray-900 text-center font-black text-[9px] uppercase border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
               Board
             </a>
-            <a [routerLink]="['/projects', item.id, 'documents']" class="flex-1 min-w-[80px] px-2 py-3 bg-orange-50 text-orange-600 text-center font-black text-[9px] uppercase rounded-xl hover:bg-orange-100 transition-all">
+            <a [routerLink]="['/documents', 'projects', item.id]" class="flex-1 min-w-[80px] px-2 py-3 bg-orange-50 text-orange-600 text-center font-black text-[9px] uppercase rounded-xl hover:bg-orange-100 transition-all">
               Docs
             </a>
           </div>

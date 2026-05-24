@@ -29,7 +29,8 @@ import { ReportService } from '../../services/report.service';
 
       <!-- Incidents Table Card -->
       <div class="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden">
-        <table class="w-full text-left border-collapse">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse whitespace-nowrap md:whitespace-normal">
           <thead>
             <tr class="bg-gray-50/50 border-b border-gray-100">
               <th class="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Titre</th>
@@ -49,6 +50,9 @@ import { ReportService } from '../../services/report.service';
               </td>
               <td class="px-8 py-5 text-right">
                 <div class="flex items-center justify-end gap-3">
+                  <a [routerLink]="['/documents', 'incidents', item.id]" class="text-xs font-black text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-100 px-3.5 py-2 rounded-xl transition-all">
+                    Documents
+                  </a>
                   <button (click)="openActionModal(item)" class="text-xs font-black text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 px-3.5 py-2 rounded-xl transition-all">
                     Action corrective
                   </button>
@@ -73,6 +77,7 @@ import { ReportService } from '../../services/report.service';
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </div>
 

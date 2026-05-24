@@ -3,11 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ImprovementService } from '../services/improvement.service';
 import { ApplicationService } from '../services/application.service';
+import { DocumentService } from '../services/document.service';
+
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-improvements',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="space-y-6">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
@@ -62,7 +65,12 @@ import { ApplicationService } from '../services/application.service';
                   </select>
                 </td>
                 <td class="px-8 py-6 text-right">
-                  <span class="text-xs font-bold text-gray-400">Par {{ imp.username }}</span>
+                  <div class="flex items-center justify-end gap-3">
+                    <span class="text-xs font-bold text-gray-400">Par {{ imp.username }}</span>
+                    <a [routerLink]="['/documents', 'improvements', imp.id]" class="text-xs font-black text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-100 px-3.5 py-2 rounded-xl transition-all">
+                      Documents
+                    </a>
+                  </div>
                 </td>
               </tr>
               <tr *ngIf="improvements().length === 0">
@@ -110,11 +118,19 @@ import { ApplicationService } from '../services/application.service';
                 <option value="High">Haute</option>
               </select>
             </div>
+
+            <div>
+              <label class="block text-[10px] font-black text-gray-400 uppercase mb-3 tracking-widest">Document / Pièce jointe</label>
+              <input type='file' (change)="onFileSelected($event)" class="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10">
+              <p *ngIf="selectedFile" class="text-xs text-orange-600 font-bold mt-2">Fichier sélectionné : {{ selectedFile.name }}</p>
+            </div>
           </div>
 
           <div class="mt-10 flex gap-4">
             <button type="button" (click)="closeModal()" class="flex-1 py-5 text-sm font-black text-gray-400 bg-white border border-gray-200 rounded-2xl hover:bg-gray-50">ANNULER</button>
-            <button type="submit" class="flex-1 py-5 text-sm font-black text-white bg-blue-600 rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-700">SOUMETTRE</button>
+            <button type="submit" [disabled]="isLoading" class="flex-1 py-5 text-sm font-black text-white bg-blue-600 rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:opacity-50">
+              {{ isLoading ? 'EN COURS...' : 'SOUMETTRE' }}
+            </button>
           </div>
         </form>
       </div>
@@ -125,6 +141,8 @@ export class ImprovementsComponent implements OnInit {
   improvements = signal<any[]>([]);
   applications = signal<any[]>([]);
   showModal = false;
+  selectedFile: File | null = null;
+  isLoading = false;
   
   newImprovement: any = {
     application_id: null,
@@ -135,6 +153,7 @@ export class ImprovementsComponent implements OnInit {
 
   private improvementService = inject(ImprovementService);
   private appService = inject(ApplicationService);
+  private documentService = inject(DocumentService);
 
   constructor() {}
 
@@ -161,13 +180,30 @@ export class ImprovementsComponent implements OnInit {
   closeModal() { 
     this.showModal = false; 
     this.newImprovement = { application_id: null, title: '', description: '', priority: 'Medium' };
+    this.selectedFile = null;
+    this.isLoading = false;
+  }
+
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
   }
 
   createImprovement() {
     if (!this.newImprovement.application_id || !this.newImprovement.title) return;
-    this.improvementService.createImprovement(this.newImprovement).subscribe(() => {
-      this.loadImprovements();
-      this.closeModal();
+    this.isLoading = true;
+    this.improvementService.createImprovement(this.newImprovement).subscribe({
+      next: (res: any) => {
+        if (this.selectedFile && res.id) {
+          this.documentService.upload(this.selectedFile, undefined, undefined, undefined, res.id).subscribe(() => {
+            this.loadImprovements();
+            this.closeModal();
+          });
+        } else {
+          this.loadImprovements();
+          this.closeModal();
+        }
+      },
+      error: () => this.isLoading = false
     });
   }
 

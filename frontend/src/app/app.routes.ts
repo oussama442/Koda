@@ -48,7 +48,7 @@ export const routes: Routes = [
       { path: 'projects/new', loadComponent: () => import('./projects/project-form/project-form').then(m => m.ProjectFormComponent) },
       { path: 'projects/edit/:id', loadComponent: () => import('./projects/project-form/project-form').then(m => m.ProjectFormComponent) },
       { path: 'projects/:id/members', loadComponent: () => import('./projects/project-members/project-members').then(m => m.ProjectMembersComponent), canActivate: [authGuard] },
-      { path: 'projects/:id/documents', loadComponent: () => import('./projects/project-documents/project-documents').then(m => m.ProjectDocumentsComponent), canActivate: [authGuard] },
+      { path: 'documents/:type/:id', loadComponent: () => import('./components/shared-documents').then(m => m.SharedDocumentsComponent), canActivate: [authGuard] },
 
       { path: 'sprints', loadComponent: () => import('./sprints/sprint-list/sprint-list').then(m => m.SprintListComponent) },
       { path: 'sprints/new', loadComponent: () => import('./sprints/sprint-form/sprint-form').then(m => m.SprintFormComponent) },

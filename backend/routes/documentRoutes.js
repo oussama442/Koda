@@ -22,7 +22,8 @@ const upload = multer({
 });
 
 router.post('/upload', verifyToken, upload.single('file'), documentController.uploadDocument);
-router.get('/project/:projectId', verifyToken, documentController.getProjectDocuments);
+router.get('/:type/:id', verifyToken, documentController.getDocumentsByType);
+router.get('/project/:projectId', verifyToken, documentController.getProjectDocuments); // Keep for backwards compatibility if needed
 router.delete('/:id', verifyToken, documentController.deleteDocument);
 
 module.exports = router;
