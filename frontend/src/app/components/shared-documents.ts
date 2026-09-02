@@ -1,13 +1,16 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DocumentService } from '../services/document.service';
+import { ProjectService } from '../services/project.service';
+import { ImprovementService } from '../services/improvement.service';
+import { forkJoin, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-shared-documents',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="space-y-10 p-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
@@ -28,14 +31,25 @@ import { DocumentService } from '../services/document.service';
           </div>
 
           <!-- Upload Trigger Area -->
-          <div class="w-full lg:w-auto">
-            <label class="group flex items-center gap-4 bg-gray-900 px-8 py-5 rounded-[2.5rem] cursor-pointer hover:bg-orange-600 transition-all duration-500 shadow-2xl shadow-gray-200 active:scale-95">
-              <input type="file" (change)="onFileSelected($event)" class="hidden">
+          <div class="w-full lg:w-80 space-y-4">
+            <div *ngIf="type === 'improvements'" class="space-y-2">
+              <label for="document-project" class="block text-sm font-bold text-gray-700">Projet de rattachement</label>
+              <p id="document-project-help" class="text-xs text-gray-500">Choisissez un projet de la même application pour y joindre ce document.</p>
+              <select id="document-project" [(ngModel)]="selectedProjectId" [disabled]="projectsLoading() || uploading()" aria-describedby="document-project-help" class="koda-input w-full">
+                <option [ngValue]="null">Sélectionner un projet...</option>
+                <option *ngFor="let project of eligibleProjects()" [ngValue]="project.id">{{ project.name }}</option>
+              </select>
+              <p *ngIf="projectsLoading()" role="status" class="text-xs text-gray-500">Chargement des projets...</p>
+              <p *ngIf="projectError()" role="alert" class="text-sm text-red-600">{{ projectError() }}</p>
+            </div>
+            <label [class.opacity-50]="!canUpload" [class.cursor-not-allowed]="!canUpload" class="group flex items-center gap-4 bg-gray-900 px-8 py-5 rounded-[2.5rem] cursor-pointer hover:bg-orange-600 transition-all duration-500 shadow-2xl shadow-gray-200 active:scale-95">
+              <input type="file" [disabled]="!canUpload" (change)="onFileSelected($event)" class="hidden">
               <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center group-hover:rotate-12 transition-transform">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
               </div>
-              <span class="text-[11px] font-black text-white uppercase tracking-widest">Nouveau Fichier</span>
+              <span class="text-[11px] font-black text-white uppercase tracking-widest">{{ uploading() ? 'Envoi en cours...' : 'Nouveau Fichier' }}</span>
             </label>
+            <p *ngIf="uploadError()" role="alert" class="text-sm text-red-600">{{ uploadError() }}</p>
           </div>
         </div>
       </div>
@@ -51,6 +65,9 @@ import { DocumentService } from '../services/document.service';
           <span class="text-sm font-black text-gray-900">{{ getTotalSize() }}</span>
         </div>
       </div>
+
+      <p *ngIf="documentsLoading()" role="status" class="text-sm text-gray-500">Chargement des documents...</p>
+      <p *ngIf="documentError()" role="alert" class="text-sm text-red-600">{{ documentError() }}</p>
 
       <!-- Document Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -77,7 +94,7 @@ import { DocumentService } from '../services/document.service';
             <h3 class="text-xl font-black text-gray-900 truncate tracking-tight">{{ doc.name || doc.file_name }}</h3>
             <div class="flex items-center gap-3">
               <span class="text-[9px] font-black text-orange-600 uppercase tracking-widest bg-orange-50 px-3 py-1 rounded-full">
-                {{ (doc.file_type || doc.file_format || 'unknown/unknown').split('/')[1] || 'FILE' }}
+                {{ (doc.file_type || doc.file_format || '').split('/').pop() || 'FILE' }}
               </span>
               <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
                 {{ documentService.formatBytes(doc.file_size || 0) }}
@@ -97,7 +114,7 @@ import { DocumentService } from '../services/document.service';
         </div>
 
         <!-- Empty State -->
-        <div *ngIf="documents().length === 0" class="col-span-full py-40 border-4 border-dashed border-gray-50 rounded-[3.5rem] flex flex-col items-center justify-center grayscale opacity-50">
+        <div *ngIf="documents().length === 0 && !documentsLoading() && !documentError()" class="col-span-full py-40 border-4 border-dashed border-gray-50 rounded-[3.5rem] flex flex-col items-center justify-center grayscale opacity-50">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-gray-200 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
           <p class="text-sm font-black text-gray-300 uppercase tracking-[0.3em]">Aucun document partagé</p>
         </div>
@@ -106,41 +123,135 @@ import { DocumentService } from '../services/document.service';
     </div>
   `
 })
-export class SharedDocumentsComponent implements OnInit {
+export class SharedDocumentsComponent implements OnInit, OnDestroy {
   type: string = '';
   entityId: number = 0;
   documents = signal<any[]>([]);
+  eligibleProjects = signal<any[]>([]);
+  selectedProjectId: number | null = null;
+  projectsLoading = signal(false);
+  documentsLoading = signal(false);
+  uploading = signal(false);
+  projectError = signal('');
+  documentError = signal('');
+  uploadError = signal('');
+  private routeSubscription?: Subscription;
+  private projectsSubscription?: Subscription;
+  private documentsSubscription?: Subscription;
+  private uploadSubscription?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
     public documentService: DocumentService,
-    private location: Location
+    private location: Location,
+    private projectService: ProjectService,
+    private improvementService: ImprovementService
   ) {}
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    this.routeSubscription = this.route.paramMap.subscribe(params => {
+      this.projectsSubscription?.unsubscribe();
+      this.uploadSubscription?.unsubscribe();
       this.type = params.get('type') || '';
       this.entityId = +(params.get('id') || 0);
+      this.selectedProjectId = null;
+      this.eligibleProjects.set([]);
+      this.projectError.set('');
+      this.uploadError.set('');
+      this.projectsLoading.set(false);
+      this.uploading.set(false);
+      this.documents.set([]);
       this.loadAll();
+      if (this.type === 'improvements') this.loadImprovementProjects();
+    });
+  }
+
+  ngOnDestroy() {
+    this.routeSubscription?.unsubscribe();
+    this.projectsSubscription?.unsubscribe();
+    this.documentsSubscription?.unsubscribe();
+    this.uploadSubscription?.unsubscribe();
+  }
+
+  get canUpload(): boolean {
+    if (this.uploading() || !Number.isInteger(this.entityId) || this.entityId <= 0) return false;
+    if (this.type === 'improvements') {
+      return !this.projectsLoading() && !this.projectError()
+        && this.eligibleProjects().some(project => project.id === this.selectedProjectId);
+    }
+    return ['projects', 'tasks', 'incidents'].includes(this.type);
+  }
+
+  private loadImprovementProjects() {
+    this.projectsLoading.set(true);
+    this.projectsSubscription = forkJoin({
+      projects: this.projectService.getAll(),
+      improvements: this.improvementService.getImprovements(),
+    }).subscribe({
+      next: ({ projects, improvements }) => {
+        this.projectsLoading.set(false);
+        const improvement = improvements.find(item => Number(item.id) === this.entityId);
+        if (!improvement) {
+          this.projectError.set('Cette demande d’amélioration est introuvable. Actualisez la page avant d’ajouter un fichier.');
+          return;
+        }
+        const applicationId = Number(improvement.application_id);
+        const eligible = Number.isInteger(applicationId) && applicationId > 0
+          ? projects.filter(project => Number(project.application_id) === applicationId)
+            .map(project => ({ ...project, id: Number(project.id) }))
+          : [];
+        this.eligibleProjects.set(eligible);
+        if (eligible.length === 0) {
+          this.projectError.set('Aucun projet lié à cette application. Créez ou rattachez un projet avant d’ajouter un fichier.');
+        }
+      },
+      error: () => {
+        this.projectsLoading.set(false);
+        this.projectError.set('Impossible de charger les projets de cette amélioration. Actualisez la page pour réessayer.');
+      },
     });
   }
 
   loadAll() {
-    this.documentService.getByType(this.type, this.entityId).subscribe(d => this.documents.set(d));
+    this.documentsSubscription?.unsubscribe();
+    this.documentError.set('');
+    this.documentsLoading.set(true);
+    this.documentsSubscription = this.documentService.getByType(this.type, this.entityId).subscribe({
+      next: documents => {
+        this.documents.set(documents);
+        this.documentsLoading.set(false);
+      },
+      error: () => {
+        this.documentsLoading.set(false);
+        this.documentError.set('Impossible de charger les documents. Actualisez la page pour réessayer.');
+      },
+    });
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      let pId, tId, iId, impId;
-      if (this.type === 'projects') pId = this.entityId;
-      if (this.type === 'incidents') iId = this.entityId;
-      if (this.type === 'improvements') impId = this.entityId;
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || !this.canUpload) return;
 
-      this.documentService.upload(file, pId, tId, iId, impId).subscribe(() => {
+    const pId = this.type === 'projects' ? this.entityId
+      : this.type === 'improvements' ? this.selectedProjectId ?? undefined : undefined;
+    const tId = this.type === 'tasks' ? this.entityId : undefined;
+    const iId = this.type === 'incidents' ? this.entityId : undefined;
+    const impId = this.type === 'improvements' ? this.entityId : undefined;
+    this.uploadError.set('');
+    this.uploading.set(true);
+    this.uploadSubscription = this.documentService.upload(file, pId, tId, iId, impId).subscribe({
+      next: () => {
+        this.uploading.set(false);
         this.loadAll();
-      });
-    }
+      },
+      error: error => {
+        this.uploading.set(false);
+        const detail = typeof error.error?.message === 'string' ? error.error.message : 'Veuillez réessayer.';
+        this.uploadError.set(`Impossible d’envoyer le fichier. ${detail}`);
+      },
+    });
   }
 
   getTotalSize() {

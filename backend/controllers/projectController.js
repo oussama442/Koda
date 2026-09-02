@@ -1,4 +1,15 @@
 const db = require('../config/db');
+const { projectValues, ProjectInputError } = require('../utils/projectInput');
+
+function respondToWriteError(error, res) {
+    if (error instanceof ProjectInputError) {
+        return res.status(400).json({ message: error.message });
+    }
+    if (error.code === 'ER_NO_REFERENCED_ROW_2' || error.errno === 1452) {
+        return res.status(400).json({ message: 'The selected application does not exist. Choose a valid application.' });
+    }
+    return res.status(500).json({ message: error.message });
+}
 
 exports.getAll = async (req, res) => {
     try {
@@ -39,34 +50,34 @@ exports.create = async (req, res) => {
             return res.status(403).json({ message: 'Only Admin can create projects' });
         }
 
-        const { application_id, name, description, start_date, end_date, chef_projet_id } = req.body;
+        const values = projectValues(req.body);
         const [result] = await db.query(
             'INSERT INTO projects (application_id, name, description, start_date, end_date, chef_projet_id) VALUES (?, ?, ?, ?, ?, ?)',
-            [application_id, name, description, start_date, end_date, chef_projet_id || null]
+            values
         );
         res.status(201).json({ id: result.insertId, message: 'Created successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        respondToWriteError(error, res);
     }
 };
 
 exports.update = async (req, res) => {
     try {
         const { id } = req.params;
-        const { application_id, name, description, start_date, end_date, chef_projet_id } = req.body;
         
         // Only Admin can update project owner/core details
         if (req.user.role !== 'Admin') {
             return res.status(403).json({ message: 'Only Admin can modify project core details' });
         }
 
+        const values = projectValues(req.body);
         await db.query(
             'UPDATE projects SET application_id = ?, name = ?, description = ?, start_date = ?, end_date = ?, chef_projet_id = ? WHERE id = ?',
-            [application_id, name, description, start_date, end_date, chef_projet_id || null, id]
+            [...values, id]
         );
         res.json({ message: 'Updated successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        respondToWriteError(error, res);
     }
 };
 

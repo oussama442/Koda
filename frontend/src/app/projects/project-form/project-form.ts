@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
@@ -40,18 +40,19 @@ import { UserService } from '../../services/user.service';
             </div>
 
             <div>
-              <label class='block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2'>Application liée</label>
-              <select formControlName='application_id' class='koda-input w-full'>
-                <option [value]="null">Sélectionner Application...</option>
-                <option *ngFor='let app of apps' [value]='app.id'>{{app.name}}</option>
+              <label for='project-application' class='block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2'>Application liée (obligatoire)</label>
+              <select id='project-application' formControlName='application_id' required class='koda-input w-full'>
+                <option [ngValue]="null">Sélectionner Application...</option>
+                <option *ngFor='let app of apps()' [ngValue]='app.id'>{{app.name}}</option>
               </select>
+              <p *ngIf="form.get('application_id')?.touched && form.get('application_id')?.hasError('required')" class='text-xs text-red-600 mt-2'>Sélectionnez une application pour ce projet.</p>
             </div>
 
             <div>
-              <label class='block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2'>Chef de Projet (Manager)</label>
-              <select formControlName='chef_projet_id' class='koda-input w-full border-blue-200 bg-blue-50/30'>
-                <option [value]="null">Assigner un Chef de Projet...</option>
-                <option *ngFor='let u of users' [value]='u.id'>{{u.full_name}} ({{u.username}})</option>
+              <label for='project-manager' class='block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2'>Chef de Projet (facultatif)</label>
+              <select id='project-manager' formControlName='chef_projet_id' class='koda-input w-full border-blue-200 bg-blue-50/30'>
+                <option [ngValue]="null">Aucun chef de projet assigné</option>
+                <option *ngFor='let u of users()' [ngValue]='u.id'>{{u.full_name}} ({{u.username}})</option>
               </select>
               <p class="text-[10px] text-blue-500 font-bold mt-2">L'administrateur choisit le responsable principal.</p>
             </div>
@@ -72,8 +73,8 @@ export class ProjectFormComponent implements OnInit {
   form: FormGroup;
   isEdit = false;
   itemId: number | null = null;
-  apps: any[] = [];
-  users: any[] = [];
+  apps = signal<any[]>([]);
+  users = signal<any[]>([]);
 
   constructor(
     private fb: FormBuilder, 
@@ -88,14 +89,14 @@ export class ProjectFormComponent implements OnInit {
       description: [''],
       start_date: [''],
       end_date: [''],
-      application_id: [null],
-      chef_projet_id: [null, Validators.required]
+      application_id: [null, Validators.required],
+      chef_projet_id: [null]
     });
   }
 
   ngOnInit() {
-    this.appService.getAll().subscribe(d => this.apps = d);
-    this.userService.getUsers().subscribe(u => this.users = u);
+    this.appService.getAll().subscribe(d => this.apps.set(d));
+    this.userService.getUsers().subscribe(u => this.users.set(u));
     
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -114,11 +115,21 @@ export class ProjectFormComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const data = {
+      ...this.form.value,
+      start_date: this.form.value.start_date || null,
+      end_date: this.form.value.end_date || null,
+      chef_projet_id: this.form.value.chef_projet_id ?? null,
+    };
     
     const obs = (this.isEdit && this.itemId) 
-      ? this.service.update(this.itemId, this.form.value)
-      : this.service.create(this.form.value);
+      ? this.service.update(this.itemId, data)
+      : this.service.create(data);
 
     obs.subscribe({ 
       next: () => this.router.navigate(['/projects']),

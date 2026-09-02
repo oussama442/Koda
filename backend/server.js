@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -47,7 +48,7 @@ app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/improvements', require('./routes/improvementRoutes'));
 
 // Serve uploads statically
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
     res.send('Koda API is running and connected to DB!');
