@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface ProjectMemberOptions {
+  users: { id: number; full_name: string }[];
+  roles: { id: number; role_name: string }[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -12,6 +17,10 @@ export class ProjectMemberService {
 
   getMembers(projectId: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${projectId}`);
+  }
+
+  getMemberOptions(projectId: number): Observable<ProjectMemberOptions> {
+    return this.http.get<ProjectMemberOptions>(`${this.apiUrl}/${projectId}/options`);
   }
 
   addMember(memberData: any): Observable<any> {

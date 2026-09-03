@@ -1,12 +1,11 @@
-import { Component, OnInit, signal, HostListener } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProjectMemberService } from '../../services/project-member.service';
+import { ProjectMemberOptions, ProjectMemberService } from '../../services/project-member.service';
 import { ProjectService } from '../../services/project.service';
-import { UserService } from '../../services/user.service';
-import { RoleService } from '../../services/role.service';
 import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-project-members',
@@ -29,15 +28,19 @@ import { AuthService } from '../../services/auth.service';
               Équipe <span class="text-blue-600 font-outline-2">Koda</span>
             </h2>
             <p class="text-xs font-black text-gray-400 uppercase tracking-[0.3em] pl-1 border-l-4 border-blue-600">{{ project()?.name }}</p>
+            <p *ngIf="projectLoading()" role="status" class="text-sm text-gray-500">Chargement du projet...</p>
+            <p *ngIf="projectError()" role="alert" class="text-sm text-red-600">{{ projectError() }}</p>
           </div>
 
           <!-- CUSTOM DROPDOWNS ACTION BAR -->
           <div *ngIf="canManage()" class="w-full lg:w-auto bg-gray-50 border border-gray-100 p-3 rounded-[2.5rem] flex flex-wrap flex-col sm:flex-row items-center gap-3">
+            <p *ngIf="optionsLoading()" role="status" class="w-full text-sm text-gray-500 px-3">Chargement des collaborateurs et des rôles...</p>
+            <p *ngIf="optionsError()" role="alert" class="w-full text-sm text-red-600 px-3">{{ optionsError() }}</p>
             
             <!-- Custom User Select -->
             <div class="relative w-full sm:w-64">
-              <div (click)="toggleUserDropdown($event)" 
-                   class="px-6 py-4 flex flex-col cursor-pointer bg-white rounded-2xl border border-transparent hover:border-blue-200 transition-all shadow-sm">
+              <button type="button" aria-label="Choisir un collaborateur" [attr.aria-expanded]="showUserDropdown" [disabled]="!optionsReady() || saving()" (click)="toggleUserDropdown($event)"
+                   class="w-full text-left px-6 py-4 flex flex-col cursor-pointer bg-white rounded-2xl border border-transparent hover:border-blue-200 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                 <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Collaborateur</span>
                 <div class="flex justify-between items-center">
                   <span class="text-sm font-black text-gray-800 truncate">
@@ -47,25 +50,25 @@ import { AuthService } from '../../services/auth.service';
                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                   </svg>
                 </div>
-              </div>
+              </button>
               
               <!-- Dropdown List -->
               <div *ngIf="showUserDropdown" class="absolute z-50 left-0 right-0 mt-2 bg-white rounded-[1.5rem] border border-gray-100 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-64 overflow-y-auto">
-                <div *ngFor="let u of allUsers" 
+                <button type="button" *ngFor="let u of allUsers()"
                      (click)="selectUser(u)"
-                     class="px-6 py-4 hover:bg-blue-50 cursor-pointer flex items-center gap-3 group transition-colors">
+                     class="w-full text-left px-6 py-4 hover:bg-blue-50 cursor-pointer flex items-center gap-3 group transition-colors">
                   <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-[10px] font-black text-gray-400 group-hover:bg-white group-hover:text-blue-500 transition-all">
                     {{ u.full_name.substring(0, 1) }}
                   </div>
                   <span class="text-sm font-bold text-gray-700 group-hover:text-blue-600">{{ u.full_name }}</span>
-                </div>
+                </button>
               </div>
             </div>
 
             <!-- Custom Role Select -->
             <div class="relative w-full sm:w-48">
-              <div (click)="toggleRoleDropdown($event)" 
-                   class="px-6 py-4 flex flex-col cursor-pointer bg-white rounded-2xl border border-transparent hover:border-blue-200 transition-all shadow-sm">
+              <button type="button" aria-label="Choisir un rôle" [attr.aria-expanded]="showRoleDropdown" [disabled]="!optionsReady() || saving()" (click)="toggleRoleDropdown($event)"
+                   class="w-full text-left px-6 py-4 flex flex-col cursor-pointer bg-white rounded-2xl border border-transparent hover:border-blue-200 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                 <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Responsabilité</span>
                 <div class="flex justify-between items-center">
                   <span class="text-sm font-black text-gray-800 truncate">
@@ -75,25 +78,29 @@ import { AuthService } from '../../services/auth.service';
                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                   </svg>
                 </div>
-              </div>
+              </button>
               
               <!-- Dropdown List -->
               <div *ngIf="showRoleDropdown" class="absolute z-50 left-0 right-0 mt-2 bg-white rounded-[1.5rem] border border-gray-100 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div *ngFor="let r of allRoles" 
+                <button type="button" *ngFor="let r of allRoles()"
                      (click)="selectRole(r)"
-                     class="px-6 py-4 hover:bg-blue-50 cursor-pointer flex items-center gap-3 group transition-colors">
+                     class="w-full text-left px-6 py-4 hover:bg-blue-50 cursor-pointer flex items-center gap-3 group transition-colors">
                   <span class="text-sm font-bold text-gray-700 group-hover:text-blue-600">{{ r.role_name }}</span>
-                </div>
+                </button>
               </div>
             </div>
 
-            <button (click)="addMember()" [disabled]="!selectedUserId || !selectedRoleId" 
+            <button (click)="addMember()" [disabled]="!canAddMember()"
                     class="w-full sm:w-auto px-10 py-5 bg-blue-600 text-white font-black text-[11px] uppercase rounded-[2rem] hover:bg-black hover:translate-y-[-2px] transition-all duration-300 disabled:opacity-20 active:scale-95 shadow-xl shadow-blue-100">
               Ajouter
             </button>
           </div>
         </div>
       </div>
+
+      <p *ngIf="membersLoading()" role="status" class="text-sm text-gray-500">Chargement de l’équipe...</p>
+      <p *ngIf="membersError()" role="alert" class="text-sm text-red-600">{{ membersError() }}</p>
+      <p *ngIf="actionError()" role="alert" class="text-sm text-red-600">{{ actionError() }}</p>
 
       <!-- Team Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -127,7 +134,7 @@ import { AuthService } from '../../services/auth.service';
             <div class="w-20 h-20 rounded-[2.5rem] bg-gray-50 flex items-center justify-center text-3xl font-black text-gray-300 group-hover:bg-blue-50 group-hover:text-blue-500 transition-all duration-500 shadow-inner">
               {{ member.full_name.substring(0, 1) }}
             </div>
-            <button *ngIf="canManage()" (click)="removeMember(member.user_id)" 
+            <button *ngIf="canManage()" (click)="removeMember(member.user_id)"
                     class="opacity-0 group-hover:opacity-100 p-4 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all duration-300">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -149,20 +156,32 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <!-- Empty State Helper -->
-        <div *ngIf="members().length === 0" class="md:col-span-2 flex flex-col items-center justify-center py-20 border-4 border-dashed border-gray-50 rounded-[3.5rem] opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+        <div *ngIf="members().length === 0 && !membersLoading() && !membersError() && !projectError()" class="md:col-span-2 flex flex-col items-center justify-center py-20 border-4 border-dashed border-gray-50 rounded-[3.5rem] opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
           <p class="text-xs font-black text-gray-300 uppercase tracking-[0.4em]">Team Under Construction</p>
         </div>
       </div>
     </div>
   `
 })
-export class ProjectMembersComponent implements OnInit {
+export class ProjectMembersComponent implements OnInit, OnDestroy {
   projectId: number = 0;
   project = signal<any>(null);
   members = signal<any[]>([]);
-  allUsers: any[] = [];
-  allRoles: any[] = [];
+  allUsers = signal<ProjectMemberOptions['users']>([]);
+  allRoles = signal<ProjectMemberOptions['roles']>([]);
   currentUser: any = null;
+  projectLoading = signal(false);
+  membersLoading = signal(false);
+  optionsLoading = signal(false);
+  optionsReady = signal(false);
+  saving = signal(false);
+  projectError = signal('');
+  membersError = signal('');
+  optionsError = signal('');
+  actionError = signal('');
+  private subscriptions = new Subscription();
+  private loadRequests = new Subscription();
+  private mutationRequest?: Subscription;
 
   selectedUserId: number | null = null;
   selectedRoleId: number | null = null;
@@ -175,43 +194,111 @@ export class ProjectMembersComponent implements OnInit {
     private route: ActivatedRoute,
     private memberService: ProjectMemberService,
     private projectService: ProjectService,
-    private userService: UserService,
-    private roleService: RoleService,
     private authService: AuthService
   ) {
-    this.authService.currentUser$.subscribe(u => this.currentUser = u);
+    this.subscriptions.add(this.authService.currentUser$.subscribe(u => this.currentUser = u));
   }
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    this.subscriptions.add(this.route.paramMap.subscribe(params => {
+      this.mutationRequest?.unsubscribe();
+      this.saving.set(false);
       this.projectId = +params.get('id')!;
       this.loadAll();
-    });
+    }));
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+    this.loadRequests.unsubscribe();
+    this.mutationRequest?.unsubscribe();
   }
 
   loadAll() {
-    this.projectService.getById(this.projectId).subscribe(p => this.project.set(p));
-    this.memberService.getMembers(this.projectId).subscribe(m => this.members.set(m));
-    this.userService.getUsers().subscribe(u => this.allUsers = u);
-    this.roleService.getRoles().subscribe((r: any[]) => this.allRoles = r);
+    this.loadRequests.unsubscribe();
+    this.loadRequests = new Subscription();
+    this.project.set(null);
+    this.members.set([]);
+    this.allUsers.set([]);
+    this.allRoles.set([]);
+    this.selectedUserId = null;
+    this.selectedRoleId = null;
+    this.closeDropdowns();
+    this.optionsReady.set(false);
+    this.optionsLoading.set(false);
+    this.projectLoading.set(true);
+    this.membersLoading.set(true);
+    this.projectError.set('');
+    this.membersError.set('');
+    this.optionsError.set('');
+    this.actionError.set('');
+    const projectId = this.projectId;
+    this.loadRequests.add(this.projectService.getById(projectId).subscribe({
+      next: project => {
+        this.project.set(project);
+        this.projectLoading.set(false);
+        if (this.canManage()) this.loadOptions(projectId);
+      },
+      error: () => {
+        this.projectLoading.set(false);
+        this.projectError.set('Impossible de charger le projet. Actualisez la page pour réessayer.');
+      },
+    }));
+    this.loadRequests.add(this.memberService.getMembers(projectId).subscribe({
+      next: members => {
+        this.members.set(members);
+        this.membersLoading.set(false);
+      },
+      error: () => {
+        this.membersLoading.set(false);
+        this.membersError.set('Impossible de charger l’équipe. Actualisez la page pour réessayer.');
+      },
+    }));
+  }
+
+  private loadOptions(projectId: number) {
+    this.optionsLoading.set(true);
+    this.loadRequests.add(this.memberService.getMemberOptions(projectId).subscribe({
+      next: options => {
+        this.allUsers.set(options.users);
+        this.allRoles.set(options.roles);
+        this.optionsLoading.set(false);
+        this.optionsReady.set(true);
+        if (!options.users.length || !options.roles.length) {
+          this.optionsError.set('Aucun collaborateur ou rôle disponible pour ce projet.');
+        }
+      },
+      error: () => {
+        this.optionsLoading.set(false);
+        this.optionsError.set('Impossible de charger les collaborateurs et les rôles. Actualisez la page pour réessayer.');
+      },
+    }));
   }
 
   canManage(): boolean {
     if (!this.currentUser || !this.project()) return false;
     const isAdmin = this.currentUser.is_global_admin || this.currentUser.role === 'Admin';
     const isChef = this.project().chef_projet_id == this.currentUser.id;
-    return isAdmin || isChef;
+    return Boolean(isAdmin || isChef);
+  }
+
+  canAddMember(): boolean {
+    return this.canManage() && this.optionsReady() && !this.saving()
+      && this.allUsers().some(user => user.id === this.selectedUserId)
+      && this.allRoles().some(role => role.id === this.selectedRoleId);
   }
 
   // Dropdown Logic
   toggleUserDropdown(event: Event) {
     event.stopPropagation();
+    if (!this.canManage() || !this.optionsReady() || this.saving()) return;
     this.showUserDropdown = !this.showUserDropdown;
     this.showRoleDropdown = false;
   }
 
   toggleRoleDropdown(event: Event) {
     event.stopPropagation();
+    if (!this.canManage() || !this.optionsReady() || this.saving()) return;
     this.showRoleDropdown = !this.showRoleDropdown;
     this.showUserDropdown = false;
   }
@@ -222,37 +309,42 @@ export class ProjectMembersComponent implements OnInit {
     this.showRoleDropdown = false;
   }
 
-  selectUser(user: any) {
-    this.selectedUserId = user.id;
+  selectUser(user: ProjectMemberOptions['users'][number]) {
+    this.selectedUserId = Number(user.id);
     this.showUserDropdown = false;
   }
 
-  selectRole(role: any) {
-    this.selectedRoleId = role.id;
+  selectRole(role: ProjectMemberOptions['roles'][number]) {
+    this.selectedRoleId = Number(role.id);
     this.showRoleDropdown = false;
   }
 
   getSelectedUserName() {
-    return this.allUsers.find(u => u.id == this.selectedUserId)?.full_name;
+    return this.allUsers().find(u => u.id === this.selectedUserId)?.full_name;
   }
 
   getSelectedRoleName() {
-    return this.allRoles.find(r => r.id == this.selectedRoleId)?.role_name;
+    return this.allRoles().find(r => r.id === this.selectedRoleId)?.role_name;
   }
 
   addMember() {
-    if (!this.selectedUserId || !this.selectedRoleId) return;
-    this.memberService.addMember({
+    if (!this.canAddMember()) return;
+    this.saving.set(true);
+    this.actionError.set('');
+    this.closeDropdowns();
+    this.mutationRequest = this.memberService.addMember({
       project_id: this.projectId,
-      user_id: +this.selectedUserId,
-      role_id: +this.selectedRoleId
+      user_id: this.selectedUserId,
+      role_id: this.selectedRoleId
     }).subscribe({
       next: () => {
-        this.selectedUserId = null;
-        this.selectedRoleId = null;
+        this.saving.set(false);
         this.loadAll();
       },
-      error: (e) => alert(e.error?.message || 'Erreur lors de l\'ajout')
+      error: () => {
+        this.saving.set(false);
+        this.actionError.set('Impossible d’ajouter ce membre. Vérifiez votre sélection et réessayez.');
+      },
     });
   }
 

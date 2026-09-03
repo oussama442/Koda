@@ -6,7 +6,7 @@ const path = require('node:path');
 const os = require('node:os');
 
 // Opt-in only: all writes target a newly created, uniquely named disposable database.
-test('real MariaDB schema initialization and project/document flows', {
+test('real MariaDB schema initialization and project/document/member flows', {
     skip: process.env.KODA_DB_INTEGRATION !== '1'
 }, async () => {
     const mysql = require('mysql2/promise');
@@ -96,6 +96,50 @@ test('real MariaDB schema initialization and project/document flows', {
         result = res();
         await documents.getDocumentsByType({ params: { type: 'tasks', id: 1 } }, result);
         assert.equal(result.body.length, 1);
+
+        // Real selector queries must exclude deleted users and return only the
+        // fields needed by the team page. Synthetic member additions never email.
+        await connection.query("INSERT INTO users (id, full_name, username, email, password, deleted_at) VALUES (2, 'Candidate user', 'candidate', 'candidate@example.invalid', 'not-a-login-hash', NULL), (3, 'Deleted user', 'deleted', 'deleted@example.invalid', 'not-a-login-hash', NOW())");
+        await connection.query("INSERT INTO roles (id, role_name) VALUES (1, 'Developer')");
+        await connection.query('UPDATE projects SET chef_projet_id = 1 WHERE id = ?', [projectId]);
+        await connection.query('UPDATE projects SET chef_projet_id = 2 WHERE id = 99');
+        const notifications = [];
+        const notificationPath = require.resolve('../controllers/notificationController');
+        require.cache[notificationPath] = {
+            id: notificationPath, filename: notificationPath, loaded: true,
+            exports: { createNotification: async (...args) => { notifications.push(args); } }
+        };
+        const projectMembers = require('../controllers/projectMemberController');
+        assert.equal(typeof projectMembers.getMemberOptions, 'function');
+        const manager = { id: 1, role: 'User' };
+        result = res();
+        await projectMembers.getMemberOptions({ params: { project_id: String(projectId) }, user: manager }, result);
+        assert.equal(result.statusCode, 200);
+        assert.deepEqual(result.body, {
+            users: [{ id: 2, full_name: 'Candidate user' }, { id: 1, full_name: 'Fixture user' }],
+            roles: [{ id: 1, role_name: 'Developer' }]
+        });
+        const selectedMember = {
+            project_id: projectId, user_id: result.body.users[0].id, role_id: result.body.roles[0].id
+        };
+        result = res();
+        await projectMembers.addMember({ body: selectedMember, user: manager }, result);
+        assert.equal(result.statusCode, 201);
+        const [members] = await connection.query('SELECT project_id, user_id, role_id FROM project_members WHERE project_id = ?', [projectId]);
+        assert.deepEqual(members, [selectedMember]);
+        assert.equal(notifications.length, 1);
+        assert.equal(notifications[0][0], selectedMember.user_id);
+
+        result = res();
+        await projectMembers.getMemberOptions({ params: { project_id: '99' }, user: manager }, result);
+        assert.equal(result.statusCode, 403);
+
+        await connection.query('UPDATE projects SET deleted_at = NOW() WHERE id = ?', [projectId]);
+        for (const user of [manager, { id: 1, role: 'Admin' }]) {
+            result = res();
+            await projectMembers.getMemberOptions({ params: { project_id: String(projectId) }, user }, result);
+            assert.equal(result.statusCode, 404, 'archived projects must not expose member options');
+        }
     } finally {
         try {
             for (const file of files) fs.rmSync(file, { force: true });
