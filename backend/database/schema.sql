@@ -1,5 +1,6 @@
 -- Schema-only baseline verified from koda_db on 2026-09-02T22:39:54.567Z.
--- MariaDB 10.4.32: 21 tables, 150 columns, 29 FK, 21 PK, 4 unique constraints, 1 CHECK.
+-- Updated on 2026-09-04 to remove the unused improvements table.
+-- MariaDB 10.4.32: 20 tables, 143 columns, 29 FK, 20 PK, 4 unique constraints, 1 CHECK.
 -- Referenced tables are created first. No records or database-selection statements.
 
 CREATE TABLE `applications` (
@@ -11,17 +12,6 @@ CREATE TABLE `applications` (
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE `improvements` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text DEFAULT NULL,
-  `status` enum('Pending','Approved','Rejected','In Progress','Done') DEFAULT 'Pending',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

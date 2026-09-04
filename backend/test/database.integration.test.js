@@ -32,7 +32,7 @@ test('real MariaDB schema initialization and project/document/member flows', {
         await connection.query(`CREATE DATABASE \`${testDatabase}\``);
         created = true;
         const initialized = await initializeDatabase(connection, testDatabase);
-        assert.equal(initialized.tableCount, 21);
+        assert.equal(initialized.tableCount, 20);
         assert.equal((await checkSchema(connection, testDatabase)).ok, true);
         await assert.rejects(initializeDatabase(connection, testDatabase), /empty|exist|refus/i);
         const [[identity]] = await connection.query('SELECT DATABASE() AS name');

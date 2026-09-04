@@ -1,0 +1,268 @@
+classDiagram
+    direction TB
+
+    %% Koda - modele de domaine et de persistance
+    %% 20 tables, 143 attributs, 29 FK SQL et 3 references du code.
+    %% [0..1] = attribut nullable. Types simplifies.
+    %% Traits pleins = FK SQL ; pointilles = references sans FK.
+    %% PK = id sauf ProjectMember(project_id,user_id)
+    %% et RolePermission(role_id,permission_id).
+    %% UQ = User.username, User.email, Role.role_name, Permission.permission_name.
+
+    %% Table : applications
+    class Application {
+        id : Integer
+        name : String
+        description : String [0..1]
+        current_status : String
+        gitlab_repo_url : String [0..1]
+        created_at : DateTime [0..1]
+        updated_at : DateTime [0..1]
+        deleted_at : DateTime [0..1]
+    }
+
+    %% Table : app_status_history
+    class ApplicationStatusHistory {
+        id : Integer
+        application_id : Integer
+        old_status : String [0..1]
+        new_status : String
+        changed_at : DateTime [0..1]
+    }
+
+    %% Table : corrective_actions
+    class CorrectiveAction {
+        id : Integer
+        incident_id : Integer
+        user_id : Integer [0..1]
+        description : String
+        executed_at : DateTime [0..1]
+    }
+
+    %% Table : deployments
+    class Deployment {
+        id : Integer
+        application_id : Integer
+        version : String
+        deployed_at : DateTime
+        pre_deploy_actions : String [0..1]
+        post_deploy_actions : String [0..1]
+    }
+
+    %% Table : documents
+    class Document {
+        id : Integer
+        file_name : String
+        file_format : String [0..1]
+        storage_path : String
+        project_id : Integer [0..1]
+        task_id : Integer [0..1]
+        incident_id : Integer [0..1]
+        improvement_id : Integer [0..1]
+        user_id : Integer [0..1]
+        created_at : DateTime
+        file_size : Integer [0..1]
+    }
+
+    %% Table : git_commits
+    class GitCommit {
+        id : Integer
+        application_id : Integer
+        deployment_id : Integer [0..1]
+        commit_hash : String
+        message : String [0..1]
+        branch : String [0..1]
+        pull_request_url : String [0..1]
+        committed_at : DateTime [0..1]
+    }
+
+    %% Table : improvement_requests
+    class ImprovementRequest {
+        id : Integer
+        application_id : Integer
+        user_id : Integer [0..1]
+        title : String
+        description : String [0..1]
+        priority : String [0..1]
+        status : String [0..1]
+        created_at : DateTime [0..1]
+        updated_at : DateTime [0..1]
+        deleted_at : DateTime [0..1]
+    }
+
+    %% Table : incidents
+    class Incident {
+        id : Integer
+        application_id : Integer
+        user_id : Integer [0..1]
+        title : String
+        description : String [0..1]
+        reported_at : DateTime [0..1]
+        status : String
+        created_at : DateTime [0..1]
+        updated_at : DateTime [0..1]
+        deleted_at : DateTime [0..1]
+    }
+
+    %% Table : notifications
+    class Notification {
+        id : Integer
+        user_id : Integer
+        title : String [0..1]
+        message : String
+        type : String [0..1]
+        link : String [0..1]
+        reference_id : Integer [0..1]
+        reference_type : String [0..1]
+        created_at : DateTime [0..1]
+        is_read : Boolean [0..1]
+    }
+
+    %% Table : permissions
+    class Permission {
+        id : Integer
+        permission_name : String
+        description : String [0..1]
+    }
+
+    %% Table : projects
+    class Project {
+        id : Integer
+        application_id : Integer
+        name : String
+        description : String [0..1]
+        start_date : Date [0..1]
+        end_date : Date [0..1]
+        chef_projet_id : Integer [0..1]
+        created_at : DateTime [0..1]
+        updated_at : DateTime [0..1]
+        deleted_at : DateTime [0..1]
+    }
+
+    %% Table : project_members
+    class ProjectMember {
+        project_id : Integer
+        user_id : Integer
+        role_id : Integer
+        assigned_at : DateTime [0..1]
+    }
+
+    %% Table : roles
+    class Role {
+        id : Integer
+        role_name : String
+    }
+
+    %% Table : role_permissions
+    class RolePermission {
+        role_id : Integer
+        permission_id : Integer
+    }
+
+    %% Table : sprints
+    class Sprint {
+        id : Integer
+        project_id : Integer
+        name : String
+        duration_weeks : Integer [0..1]
+        start_date : Date [0..1]
+        end_date : Date [0..1]
+        status : String [0..1]
+        created_at : DateTime [0..1]
+        updated_at : DateTime [0..1]
+        deleted_at : DateTime [0..1]
+    }
+
+    %% Table : sprint_checklists
+    class SprintChecklist {
+        id : Integer
+        sprint_id : Integer
+        item_name : String
+        is_checked : Boolean [0..1]
+        updated_at : DateTime [0..1]
+    }
+
+    %% Table : sprint_history
+    class SprintHistory {
+        id : Integer
+        sprint_id : Integer
+        action : String
+        details : String [0..1]
+        changed_at : DateTime [0..1]
+        changed_by : Integer [0..1]
+    }
+
+    %% Table : tasks
+    class Task {
+        id : Integer
+        project_id : Integer
+        sprint_id : Integer [0..1]
+        user_id : Integer [0..1]
+        title : String
+        description : String [0..1]
+        story_points : Integer [0..1]
+        status : String [0..1]
+        start_date : Date [0..1]
+        end_date : Date [0..1]
+        created_at : DateTime [0..1]
+        updated_at : DateTime [0..1]
+        deleted_at : DateTime [0..1]
+    }
+
+    %% Table : task_comments
+    class TaskComment {
+        id : Integer
+        task_id : Integer
+        user_id : Integer [0..1]
+        comment : String
+        created_at : DateTime [0..1]
+    }
+
+    %% Table : users
+    class User {
+        id : Integer
+        full_name : String
+        username : String
+        email : String
+        password : String
+        is_global_admin : Boolean [0..1]
+        created_at : DateTime [0..1]
+        updated_at : DateTime [0..1]
+        deleted_at : DateTime [0..1]
+        avatar : String [0..1]
+    }
+
+    Application "1" -- "0..*" ApplicationStatusHistory
+    Incident "1" -- "0..*" CorrectiveAction
+    User "0..1" -- "0..*" CorrectiveAction
+    Application "1" -- "0..*" Deployment
+    Project "0..1" -- "0..*" Document
+    Task "0..1" -- "0..*" Document
+    Incident "0..1" -- "0..*" Document
+    ImprovementRequest "0..1" .. "0..*" Document : improvement_id
+    User "0..1" .. "0..*" Document : user_id
+    Application "1" -- "0..*" GitCommit
+    Deployment "0..1" -- "0..*" GitCommit
+    Application "1" -- "0..*" ImprovementRequest
+    User "0..1" -- "0..*" ImprovementRequest
+    Application "1" -- "0..*" Incident
+    User "0..1" -- "0..*" Incident
+    User "1" -- "0..*" Notification
+    Application "1" -- "0..*" Project
+    User "0..1" .. "0..*" Project : chef_projet_id
+    Project "1" -- "0..*" ProjectMember
+    User "1" -- "0..*" ProjectMember
+    Role "1" -- "0..*" ProjectMember
+    Role "1" -- "0..*" RolePermission
+    Permission "1" -- "0..*" RolePermission
+    Project "1" -- "0..*" Sprint
+    Sprint "1" -- "0..*" SprintChecklist
+    Sprint "1" -- "0..*" SprintHistory
+    User "0..1" -- "0..*" SprintHistory : changed_by
+    Project "1" -- "0..*" Task
+    Sprint "0..1" -- "0..*" Task
+    User "0..1" -- "0..*" Task
+    Task "1" -- "0..*" TaskComment
+    User "0..1" -- "0..*" TaskComment
+
+    note for Document "CHECK : au moins un parent parmi project_id, task_id et incident_id."

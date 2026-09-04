@@ -50,21 +50,21 @@ test('initialization creates only the baseline in a newly named empty database',
     };
     const result = await initializeDatabase(connection, 'koda_schema_test_explicit');
     const creates = queries.filter((sql) => /^CREATE TABLE\b/i.test(sql));
-    assert.equal(result.tableCount, 21);
+    assert.equal(result.tableCount, 20);
     assert.deepEqual(creates, [...readBaseline().values()]);
     assert.equal(queries.filter((sql) => /^CREATE DATABASE\b/i.test(sql)).length, 1);
     assert.ok(!queries.some((sql) => /\b(?:DROP|INSERT|DELETE|UPDATE|ALTER)\s+(?:DATABASE|TABLE|INTO|FROM)\b/i.test(sql)));
     assert.ok(!queries.some((sql) => /FOREIGN_KEY_CHECKS/i.test(sql)));
 });
 
-test('baseline preserves the 21-table schema and orders every FK parent first', () => {
+test('baseline preserves the 20-table schema and orders every FK parent first', () => {
     const { readBaseline } = tooling();
     const baseline = readBaseline();
     const ddl = fs.readFileSync(baselinePath, 'utf8');
-    assert.equal(baseline.size, 21);
-    assert.equal((ddl.match(/^  `\w+` /gm) || []).length, 150);
+    assert.equal(baseline.size, 20);
+    assert.equal((ddl.match(/^  `\w+` /gm) || []).length, 143);
     assert.equal((ddl.match(/\bFOREIGN KEY\b/g) || []).length, 29);
-    assert.equal((ddl.match(/\bPRIMARY KEY\b/g) || []).length, 21);
+    assert.equal((ddl.match(/\bPRIMARY KEY\b/g) || []).length, 20);
     assert.equal((ddl.match(/\bUNIQUE KEY\b/g) || []).length, 4);
     assert.equal((ddl.match(/\bCHECK\s*\(/g) || []).length, 1);
     const seen = new Set();
@@ -74,8 +74,8 @@ test('baseline preserves the 21-table schema and orders every FK parent first', 
         }
         seen.add(name);
     }
-    assert.ok(baseline.has('improvements') && baseline.has('improvement_requests'));
-    assert.doesNotMatch(baseline.get('improvements'), /FOREIGN KEY/);
+    assert.ok(baseline.has('improvement_requests'));
+    assert.equal(baseline.has('improvements'), false);
     assert.match(baseline.get('documents'), /CHECK \(`project_id` is not null or `task_id` is not null or `incident_id` is not null\)/);
 });
 
@@ -93,7 +93,6 @@ for (const [label, table, mutate] of [
     ['foreign-key delete rule', 'tasks', (sql) => sql.replace('ON DELETE SET NULL', 'ON DELETE CASCADE')],
     ['unique constraint', 'roles', (sql) => sql.replace('UNIQUE KEY', 'KEY')],
     ['document CHECK', 'documents', (sql) => sql.replace('or `incident_id` is not null', 'or `improvement_id` is not null')],
-    ['enum string case', 'improvements', (sql) => sql.replace("'Pending'", "'pending'")],
     ['extra column', 'roles', (sql) => sql.replace('  PRIMARY KEY', '  `extra` int(11) DEFAULT NULL,\n  PRIMARY KEY')]
 ]) {
     test(`drift comparison detects ${label}`, () => {
@@ -105,13 +104,21 @@ for (const [label, table, mutate] of [
     });
 }
 
+test('drift comparison detects enum string case', () => {
+    const { compareSchemas } = tooling();
+    const ddl = "CREATE TABLE `fixture` (`status` enum('Pending','Done'))";
+    const expected = new Map([['fixture', ddl]]);
+    const actual = new Map([['fixture', ddl.replace("'Pending'", "'pending'")]]);
+    assert.deepEqual(compareSchemas(expected, actual), { missingTables: [], unexpectedTables: [], changedTables: ['fixture'] });
+});
+
 test('drift comparison reports missing and unexpected tables separately', () => {
     const { readBaseline, compareSchemas } = tooling();
     const expected = readBaseline();
     const actual = new Map(expected);
-    actual.delete('improvements');
+    actual.delete('improvement_requests');
     actual.set('unexpected', 'CREATE TABLE `unexpected` (`id` int NOT NULL)');
-    assert.deepEqual(compareSchemas(expected, actual), { missingTables: ['improvements'], unexpectedTables: ['unexpected'], changedTables: [] });
+    assert.deepEqual(compareSchemas(expected, actual), { missingTables: ['improvement_requests'], unexpectedTables: ['unexpected'], changedTables: [] });
 });
 
 test('schema verification reads metadata and SHOW CREATE only', async () => {
@@ -132,8 +139,8 @@ test('schema verification reads metadata and SHOW CREATE only', async () => {
     };
     const report = await checkSchema(connection, 'koda_db');
     assert.equal(report.ok, true);
-    assert.equal(report.expectedTableCount, 21);
-    assert.equal(report.actualTableCount, 21);
+    assert.equal(report.expectedTableCount, 20);
+    assert.equal(report.actualTableCount, 20);
     assert.ok(queries.every((sql) => /^\s*(SELECT|SHOW)\b/.test(sql)));
 });
 

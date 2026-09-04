@@ -20,7 +20,7 @@ function parentId(value, field) {
 
 async function validateImprovementParents(parents) {
     if (!parents.improvement_id) return;
-    // The current improvement feature uses improvement_requests, not the separate improvements table.
+    // Validate improvement attachments against active improvement requests.
     const [requests] = await db.query(
         'SELECT application_id FROM improvement_requests WHERE id = ? AND deleted_at IS NULL',
         [parents.improvement_id]

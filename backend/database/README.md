@@ -1,6 +1,6 @@
 # Database setup and verification
 
-`schema.sql` is the schema-only baseline captured from the live `koda_db` MariaDB 10.4.32 database on 2026-09-02. It contains 21 tables, 150 columns, 29 foreign keys, 21 primary keys, 4 unique constraints, and one document CHECK. No credentials or record data are included. Tables are ordered so every referenced table already exists; foreign-key checks stay enabled.
+`schema.sql` is the schema-only baseline captured from the live `koda_db` MariaDB 10.4.32 database on 2026-09-02 and updated on 2026-09-04 to remove the unused `improvements` table. It contains 20 tables, 143 columns, 29 foreign keys, 20 primary keys, 4 unique constraints, and one document CHECK. No credentials or record data are included. Tables are ordered so every referenced table already exists; foreign-key checks stay enabled.
 
 ## Configuration
 
@@ -18,6 +18,8 @@ This reads `information_schema.TABLES` and `SHOW CREATE TABLE`; it never reads a
 
 The comparison is designed for the captured MariaDB version. Another server version may format equivalent definitions differently; review reported differences before considering a migration.
 
+The local database cleanup on 2026-09-04 removed the empty, unused `improvements` table after verifying it had no dependencies and saving its restorable definition. The active `improvement_requests` table and its records were retained. Existing copies with the old table will report it as unexpected: neither `db:check` nor `db:init` removes it automatically. Back up and review any such database before applying an explicit migration.
+
 ## New empty database: initialize
 
 Choose a new name such as `koda_dev_new` explicitly in `DB_NAME`, then run:
@@ -33,7 +35,7 @@ MariaDB DDL auto-commits. If one CREATE fails, execution stops immediately and a
 
 ## Relationships that must stay distinct
 
-- `improvements` and `improvement_requests` are separate tables. The current improvement API queries `improvement_requests`. The separate `improvements` table has no foreign keys and remains part of the baseline.
+- The improvement API and attachment validation use `improvement_requests`. The unused legacy `improvements` table was removed from the baseline; the `/api/improvements` route is unchanged.
 - `projects.application_id` and `notifications.user_id` are required. Notifications retain `reference_id` and `reference_type`.
 - A document must have at least one non-null `project_id`, `task_id`, or `incident_id`. An `improvement_id` alone does not satisfy the database CHECK. Multiple parents are permitted by that CHECK.
 - `documents.improvement_id`, `documents.user_id`, and `projects.chef_projet_id` have no SQL foreign key. The application must validate their logical relationships.
